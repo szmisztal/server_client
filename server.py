@@ -1,24 +1,25 @@
 import socket as s
 import json
 from datetime import datetime as dt
-from variables import HOST, PORT, BUFFER, utf8, server_version, server_start_date, server_uptime
-
-server_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-server_socket.bind((HOST, PORT))
-server_socket.listen(1)
+from variables import HOST, PORT, BUFFER, utf8, server_version, server_start_date, server_status, server_uptime
 
 def serialize_json(data):
-    serializing_data = json.dumps(data)
-    return serializing_data
+    return json.dumps(data).encode(utf8)
 
-def uptime(server_uptime):
+def uptime(server_start_time):
     current_time = dt.now()
-    server_uptime = current_time - server_uptime
-    return serialize_json(server_uptime).encode(utf8)
+    server_uptime = current_time - server_start_time
+    uptime_dict = {
+        "Server uptime time:": f"{server_uptime}"
+    }
+    return serialize_json(uptime_dict)
 
 def info():
-    server_info = (f"Server start date: {server_start_date}, server version: {server_version}")
-    return serialize_json(server_info).encode(utf8)
+    server_info = {
+        "Server start date:": server_start_date,
+        "Server version:": server_version
+    }
+    return serialize_json(server_info)
 
 def help():
     commands = {
@@ -26,29 +27,42 @@ def help():
         "Info": "Shows the current version and server start date",
         "Help": "Shows available commands",
         "Stop": "Shuts down the server"
-        }
-    return serialize_json(commands).encode(utf8)
+    }
+    return serialize_json(commands)
 
 def stop():
-    pass
+    stop_msg = {
+        "Server status": "Shutting down"
+    }
+    return serialize_json(stop_msg)
 
-def receive_request_from_client():
+def response_to_client(client_request):
+    if client_request == "uptime":
+        return uptime(server_uptime)
+    elif client_request == "info":
+        return info()
+    elif client_request == "help":
+        return help()
+    else:
+        error_msg = {
+            "Unknown command": f"'{client_request}', try again"
+        }
+        return serialize_json(error_msg)
+
+server_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
+server_socket.bind((HOST, PORT))
+server_socket.listen()
+client_socket, address = server_socket.accept()
+
+while server_status == True:
     client_request = client_socket.recv(BUFFER).decode(utf8)
-    return client_request
+    print(f"Client request: {client_request}")
+    if client_request == "stop":
+        client_socket.send(stop())
+        server_status = False
+        break
+    else:
+        response_data = response_to_client(client_request)
+        client_socket.send(response_data)
 
-def response_to_client():
-    if receive_request_from_client() == "uptime":
-        client_socket.send(uptime(server_uptime))
-    elif receive_request_from_client() == "info":
-        client_socket.send(info())
-    elif receive_request_from_client() == "help":
-        client_socket.send(help())
-    elif receive_request_from_client() == "stop":
-        stop()
-
-while True:
-    sever_start = dt.now()
-    client_socket, address = server_socket.accept()
-    print(f"Connection from {HOST}:{PORT}")
-    print(receive_request_from_client())
-    print(response_to_client())
+print("Server closed")
