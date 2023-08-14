@@ -16,7 +16,7 @@ while server_status == True:
     client_socket.send(request_to_server())
     response = deserialize_json(client_socket.recv(BUFFER))
     for key, value in response.items():
-        print(key, ":", value)
+        print(f"{key} : {value}")
         if "Server status" in response.keys():
             server_status = False
             break
