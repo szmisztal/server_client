@@ -1,27 +1,26 @@
-import socket as s
-import json
-from variables import HOST, PORT, BUFFER, utf8, server_status
+from network_utils import client_socket_create
+from data_utils import deserialize_json
+from variables import HOST, PORT, BUFFER, utf8
 
-client_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-client_socket.connect((HOST, PORT))
-
-def deserialize_json(data):
-    return json.loads(data)
+client_socket = client_socket_create(HOST, PORT)
 
 def request_to_server():
     request = input("Choose command: uptime / info / help / stop \n").encode(utf8)
     return request
 
-while server_status == True:
-    client_socket.send(request_to_server())
-    response = deserialize_json(client_socket.recv(BUFFER))
-    for key, value in response.items():
-        print(f"{key} : {value}")
-        if "Server status" in response.keys():
-            server_status = False
-            break
+while True:
+    request = request_to_server()
+    client_socket.send(request)
+    if request.decode(utf8) == "stop":
+        print("Client closed")
+        client_socket.close()
+        exit()
+    else:
+        response = deserialize_json(client_socket.recv(BUFFER))
+        for key, value in response.items():
+            print(f"{key} : {value}")
 
-print("Client closed")
+
 
 
 
