@@ -1,12 +1,10 @@
 from network_utils import client_socket_create
+from communication_utils import request_to_server
 from data_utils import deserialize_json
 from variables import HOST, PORT, BUFFER, utf8
 
 client_socket = client_socket_create(HOST, PORT)
 
-def request_to_server():
-    request = input("Choose command: uptime / info / help / stop \n").encode(utf8)
-    return request
 
 while True:
     request = request_to_server()
