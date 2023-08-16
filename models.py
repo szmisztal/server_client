@@ -1,11 +1,8 @@
 from datetime import datetime as dt
-from variables import server_version, server_start_date, server_start_time
+from variables import server_version, server_start_date
 from data_utils import serialize_json
 
 class Command():
-
-    def __init__(self, client_request):
-        self.client_request = client_request
 
     def uptime(self, server_start_time):
         current_time = dt.now()
@@ -31,23 +28,9 @@ class Command():
         }
         return serialize_json(commands)
 
-    def stop(self):
-        stop_msg = {
-            "Server status": "Shutting down"
-        }
-        return serialize_json(stop_msg)
+class User():
 
-    def response_to_client(self, client_request):
-        if client_request == "uptime":
-            return self.uptime(server_start_time)
-        elif client_request == "info":
-            return self.info()
-        elif client_request == "help":
-            return self.help()
-        elif client_request == "stop":
-            return self.stop()
-        else:
-            error_msg = {
-                "Unknown command": f"'{client_request}', try again"
-            }
-            return serialize_json(error_msg)
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
