@@ -34,3 +34,14 @@ class User():
         self.username = username
         self.password = password
 
+    @classmethod
+    def register_user(cls):
+        username = input("Choose your username: ")
+        password = input("Set your password: ")
+        return cls(username, password)
+
+    def serialize_user_dict_to_json(self):
+        user_dict = {
+            f"{self.username}": f"{self.password}"
+        }
+        return serialize_json(user_dict)
