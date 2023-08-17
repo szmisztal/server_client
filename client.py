@@ -5,7 +5,6 @@ from variables import HOST, PORT, BUFFER, utf8
 
 client_socket = client_socket_create(HOST, PORT)
 
-
 while True:
     request = request_to_server()
     client_socket.send(request)
