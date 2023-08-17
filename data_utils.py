@@ -8,7 +8,7 @@ def deserialize_json(data):
     return json.loads(data)
 
 def write_to_json_file(file, data):
-    with open(file, "w") as file:
+    with open(file, "a") as file:
         json.dump(data, file)
 
 def read_json_file(file):
