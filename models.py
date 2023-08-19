@@ -1,6 +1,7 @@
 from datetime import datetime as dt
-from variables import server_version, server_start_date
-from data_utils import serialize_json
+from variables import server_version, server_start_date, users_file
+from data_utils import serialize_json, write_to_json_file
+
 
 class Command():
 
@@ -21,6 +22,7 @@ class Command():
 
     def help(self):
         commands = {
+            "Register": "Register new user",
             "Uptime": "Shows the lifetime of the server",
             "Info": "Shows the current version and server start date",
             "Help": "Shows available commands",
@@ -34,14 +36,24 @@ class User():
         self.username = username
         self.password = password
 
-    @classmethod
-    def register_user(cls):
-        username = input("Choose your username: ")
-        password = input("Set your password: ")
-        return cls(username, password)
-
-    def serialize_user_dict_to_json(self):
+    def serialize_user_to_dict(self):
         user_dict = {
-            f"{self.username}": f"{self.password}"
+            "username": self.username,
+            "password": self.password
         }
-        return serialize_json(user_dict)
+        return user_dict
+
+    @classmethod
+    def register_user(cls, registration_data_dict):
+        user = cls(**registration_data_dict)
+        write_to_json_file(users_file, registration_data_dict)
+        register_msg = {
+            "Message": f"User: {user.username}, registered successfully"
+        }
+        return serialize_json(register_msg)
+
+
+
+
+
+
