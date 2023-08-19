@@ -3,7 +3,7 @@ from models import User
 
 
 def request_to_server():
-    request = input("Choose command: register / uptime / info / help / stop \n")
+    request = input("Choose command: register / uptime / info / help / stop  \n")
     return request
 
 def response_to_client(client_request, **kwargs):
