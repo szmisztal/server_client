@@ -25,6 +25,12 @@ while True:
         if "Message" in response and "logged in" in response["Message"]:
             user = User(**user_data)
             user.logged_in = True
+    elif request.decode(utf8) == "logout":
+        if user.logged_in:
+            user.logged_in = False
+            response = deserialize_json(client_socket.recv(BUFFER))
+            for key, value in response.items():
+                print(f"{key}: {value}")
     else:
         response = deserialize_json(client_socket.recv(BUFFER))
         for key, value in response.items():
