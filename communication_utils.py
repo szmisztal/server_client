@@ -2,13 +2,14 @@ from data_utils import serialize_json, deserialize_json
 from models import User
 
 
-def request_to_server():
-    # if user.is_logged_in() == True:
+def request_to_server(user):
+    print(user)
+    if user.is_logged_in() == True:
         request = input("Choose command: uptime / info / help / stop \n")
         return request
-    # else:
-    #     request = input("Choose command: register / login / stop \n")
-    #     return request
+    else:
+        request = input("Choose command: register / login / stop \n")
+        return request
 
 def response_to_client(client_request, **kwargs):
     command = kwargs.get("command")
@@ -26,7 +27,9 @@ def response_to_client(client_request, **kwargs):
     elif client_request == "login":
         login_data = kwargs.get("login_data")
         login_data_dict = deserialize_json(login_data)
-        user = User(**login_data_dict)
+        # user = User(**login_data_dict)
+        # user.logged_in = True
+        # print(user)
         return user.login_user(login_data_dict)
     else:
         error_msg = {
