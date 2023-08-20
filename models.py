@@ -81,6 +81,9 @@ class User():
     def is_logged_in(self):
         return self.logged_in
 
+    def __str__(self):
+        return f"{self.username}, {self.password}, {self.logged_in}"
+
 
 
 
