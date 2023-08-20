@@ -22,13 +22,19 @@ class Command():
 
     def help(self):
         commands = {
-            "Register": "Register new user",
             "Uptime": "Shows the lifetime of the server",
             "Info": "Shows the current version and server start date",
             "Help": "Shows available commands",
             "Stop": "Shuts down the server"
         }
         return serialize_json(commands)
+
+    def logout(self):
+        logout_msg = {
+            "Message": "You was logged out"
+        }
+        return serialize_json(logout_msg)
+
 
 class User():
 
@@ -60,29 +66,12 @@ class User():
         }
         return serialize_json(register_msg)
 
-    def login_user(self, login_data_dict):
-        username = login_data_dict["username"]
-        password = login_data_dict["password"]
-        users_list = read_json_file(users_file)
-        for user_data in users_list:
-            stored_username = user_data["username"]
-            stored_password = user_data["password"]
-            if username == stored_username and password == stored_password:
-                self.logged_in = True
-                login_msg = {
-                    "Message": "You are logged in"
-                }
-                return serialize_json(login_msg)
-        error_msg = {
-            "Message": "Incorrect data. try again"
-        }
-        return serialize_json(error_msg)
-
     def is_logged_in(self):
         return self.logged_in
 
     def __str__(self):
         return f"{self.username}, {self.password}, {self.logged_in}"
+
 
 
 
