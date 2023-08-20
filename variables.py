@@ -10,5 +10,6 @@ server_status = True
 server_start_time = dt.now()
 users_file = "users.json"
 users_list = []
+logged_users = []
 
 
