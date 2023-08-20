@@ -11,18 +11,19 @@ while True:
     client_socket, address = server_socket.accept()
     print(f"Connected from {HOST}:{PORT}")
     while True:
-        client_request = client_socket.recv(BUFFER).decode(utf8)
-        if not client_request:
-            break
-        print(f"Client request: {client_request}")
-        if client_request == "stop":
-            break
-        elif client_request == "register":
-            registration_data = client_socket.recv(BUFFER).decode(utf8)
-            response_data = response_to_client(client_request, registration_data = registration_data).encode(utf8)
-        else:
-            response_data = response_to_client(client_request, command = command, server_start_time = server_start_time).encode(utf8)
-        client_socket.send(response_data)
+            client_request = client_socket.recv(BUFFER).decode(utf8)
+            print(f"Client request: {client_request}")
+            if client_request == "stop":
+                break
+            elif client_request == "register":
+                registration_data = client_socket.recv(BUFFER).decode(utf8)
+                response_data = response_to_client(client_request, registration_data = registration_data).encode(utf8)
+            elif client_request == "login":
+                login_data = client_socket.recv(BUFFER).decode(utf8)
+                response_data = response_to_client(client_request, login_data = login_data).encode(utf8)
+            else:
+                response_data = response_to_client(client_request, command = command, server_start_time = server_start_time).encode(utf8)
+            client_socket.send(response_data)
     print(f"Connection from {HOST}:{PORT} closed")
     client_socket.close()
     server_socket.close()
