@@ -25,6 +25,7 @@ class Command():
             "Uptime": "Shows the lifetime of the server",
             "Info": "Shows the current version and server start date",
             "Help": "Shows available commands",
+            "Show": "Shows your current user-data",
             "Change data": "Change your user-data",
             "Stop": "Shuts down the server"
         }
@@ -67,9 +68,6 @@ class User():
         }
         return serialize_json(register_msg)
 
-    def is_logged_in(self):
-        return self.logged_in
-
     def login_user(self, login_data_dict):
         self.username = login_data_dict["username"]
         self.password = login_data_dict["password"]
@@ -86,6 +84,15 @@ class User():
             "Message": "Incorrect data. try again"
         }
         return serialize_json(error_msg)
+
+    def is_logged_in(self):
+        return self.logged_in
+
+    def show_current_data(self):
+        current_data_msg = {
+            "Your current username and password:": f"Username: {self.username}, password: {self.password}"
+        }
+        return serialize_json(current_data_msg)
 
     def change_user_data(self, new_data_dict):
         new_username = new_data_dict["username"]
