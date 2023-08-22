@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 from variables import server_version, server_start_date, users_file
-from data_utils import serialize_json, write_to_json_file, read_json_file, user_username_and_password_input
+from data_utils import serialize_json, write_to_json_file, read_json_file
 
 
 class Command():
