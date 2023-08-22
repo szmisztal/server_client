@@ -15,7 +15,7 @@ while True:
         print("Client closed")
         client_socket.close()
         exit()
-    elif request.decode(utf8) in ["register", "login"]:
+    elif request.decode(utf8) in ["register", "login", "change data"]:
         user_data = user_username_and_password_input()
         user_json_data = serialize_json(user_data).encode(utf8)
         client_socket.send(user_json_data)
@@ -26,7 +26,7 @@ while True:
             user = User(**user_data)
             user.logged_in = True
     elif request.decode(utf8) == "logout":
-        if user.logged_in:
+        if user.logged_in == True:
             user.logged_in = False
             response = deserialize_json(client_socket.recv(BUFFER))
             for key, value in response.items():
