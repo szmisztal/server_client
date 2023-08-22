@@ -1,6 +1,5 @@
-from data_utils import serialize_json, deserialize_json, read_json_file
+from data_utils import serialize_json, deserialize_json
 from models import User
-from variables import users_file
 
 
 def request_to_server(user):
