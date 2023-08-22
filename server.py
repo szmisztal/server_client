@@ -26,7 +26,7 @@ while True:
             new_data = client_socket.recv(BUFFER).decode(utf8)
             response_data = response_to_client(client_request, user = user, new_data = new_data).encode(utf8)
         else:
-            response_data = response_to_client(client_request, command = command, server_start_time = server_start_time).encode(utf8)
+            response_data = response_to_client(client_request, command = command, user = user, server_start_time = server_start_time).encode(utf8)
         client_socket.send(response_data)
     print(f"Connection from {HOST}:{PORT} closed")
     client_socket.close()
