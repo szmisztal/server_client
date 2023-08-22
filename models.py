@@ -91,8 +91,9 @@ class User():
         new_username = new_data_dict["username"]
         new_password = new_data_dict["password"]
         users_list = read_json_file(users_file)
-        for other_user in users_list:
-            if other_user["username"] == new_username and other_user["username"] != self.username:
+        for other_user_data in users_list:
+            stored_username = other_user_data["username"]
+            if stored_username == new_username and stored_username != self.username:
                 error_msg = {
                     "Username": "In use, choose another"
                 }
