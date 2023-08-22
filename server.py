@@ -2,7 +2,6 @@ from communication_utils import response_to_client
 from network_utils import server_socket_create
 from variables import HOST, PORT, BUFFER, utf8, server_start_time
 from models import Command, User
-import json
 
 
 server_socket = server_socket_create(HOST, PORT)
