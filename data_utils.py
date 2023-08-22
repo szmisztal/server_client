@@ -12,8 +12,11 @@ def write_to_json_file(filename, data):
         json.dump(data, file, indent = 4)
 
 def read_json_file(filename):
-    with open(filename, "r") as file:
-        users_data = json.load(file)
+    try:
+        with open(filename, "r") as file:
+            users_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        users_data = []
     return users_data
 
 def user_username_and_password_input():
