@@ -1,7 +1,10 @@
 from datetime import datetime as dt
-from variables import server_version, server_start_date, users_file
+from variables import server_version, server_start_date, users_file, messages_file
 from data_utils import serialize_json, write_to_json_file, read_json_file
 
+
+users_list = read_json_file(users_file) or []
+messages_list = read_json_file(messages_file) or []
 
 class Command():
 
@@ -25,8 +28,10 @@ class Command():
             "Uptime": "Shows the lifetime of the server",
             "Info": "Shows the current version and server start date",
             "Help": "Shows available commands",
-            "Show": "Shows your current user-data",
+            "Show data": "Shows your current user-data",
             "Change data": "Change your user-data",
+            "Send message": "Send message to other user",
+            "Inbox": "Shows messages in your inbox",
             "Stop": "Shuts down the server"
         }
         return serialize_json(commands)
@@ -43,14 +48,14 @@ class User():
     def __init__(self, username, password):
         self.username = username
         self.password = password
+        self.user_messages = []
         self.logged_in = False
 
     @classmethod
     def register_user(cls, registration_data_dict):
         username = registration_data_dict["username"]
-        users_list = read_json_file(users_file) or []
-        for user_data in users_list:
-            stored_username = user_data["username"]
+        for u in users_list:
+            stored_username = u["username"]
             if username == stored_username:
                 error_msg = {
                     "Username": "In use, choose another"
@@ -71,10 +76,9 @@ class User():
     def login_user(self, login_data_dict):
         self.username = login_data_dict["username"]
         self.password = login_data_dict["password"]
-        users_list = read_json_file(users_file)
-        for user_data in users_list:
-            stored_username = user_data["username"]
-            stored_password = user_data["password"]
+        for u in users_list:
+            stored_username = u["username"]
+            stored_password = u["password"]
             if self.username == stored_username and self.password == stored_password:
                 login_msg = {
                     "Message": "You was logged in"
@@ -97,23 +101,54 @@ class User():
     def change_user_data(self, new_data_dict):
         new_username = new_data_dict["username"]
         new_password = new_data_dict["password"]
-        users_list = read_json_file(users_file)
-        for other_user_data in users_list:
-            stored_username = other_user_data["username"]
+        for u in users_list:
+            stored_username = u["username"]
             if stored_username == new_username and stored_username != self.username:
                 error_msg = {
                     "Username": "In use, choose another"
                 }
                 return serialize_json(error_msg)
-        for user_data in users_list:
-            if self.username == user_data["username"]:
-                user_data["username"] = new_username
-                user_data["password"] = new_password
+        for u in users_list:
+            if self.username == u["username"]:
+                u["username"] = self.username = new_username
+                u["password"] = self.password = new_password
                 write_to_json_file(users_file, users_list)
                 success_msg = {
-                    "Your new data": f"Username: {self.username} ; Password: {self.password}"
+                    "Success": f"Your new data: username = {self.username}, password = {self.password}"
                 }
                 return serialize_json(success_msg)
+
+    def send_message(self):
+        recipient = input("Message to ?: ")
+        for u in users_list:
+            if recipient == u["username"]:
+                recipient = User(u["username"], u["password"])
+                message = input("Write message: ")
+                if len(message) > 255:
+                    print("Max message length = 255")
+                    break
+                elif len(recipient.user_messages) >= 5:
+                    print("Inbox full")
+                    break
+                else:
+                    message_dict = {
+                        "Message": message
+                    }
+                    messages = recipient.user_messages.append(message_dict)
+                    write_to_json_file(messages_file, messages)
+                    success_msg = {
+                        "Message": "Message send successfully"
+                    }
+                    return serialize_json(success_msg)
+        else:
+            error_msg ={
+                "Error": "User not found"
+            }
+            return serialize_json(error_msg)
+
+    def show_messages(self):
+        for m in self.user_messages:
+            print(m)
 
     def __str__(self):
         return f"{self.username}, {self.password}, {self.logged_in}"
