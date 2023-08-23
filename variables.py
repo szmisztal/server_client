@@ -9,3 +9,4 @@ server_start_date = "12.08.2023"
 server_status = True
 server_start_time = dt.now()
 users_file = "users.json"
+messages_file = "messages.json"
