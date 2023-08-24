@@ -25,6 +25,13 @@ while True:
         elif client_request == "change data":
             new_data = client_socket.recv(BUFFER).decode(utf8)
             response_data = response_to_client(client_request, user = user, new_data = new_data).encode(utf8)
+        elif client_request == "send message":
+            recipient_data = client_socket.recv(BUFFER).decode(utf8)
+            response_data = response_to_client(client_request, recipient_data = recipient_data).encode(utf8)
+            client_socket.send(response_data)
+            message_data = client_socket.recv(BUFFER).decode(utf8)
+            response_message = response_to_client(client_request, user = user, recipient_data = recipient_data, message_data = message_data).encode(utf8)
+            client_socket.send(response_message)
         else:
             response_data = response_to_client(client_request, command = command, user = user, server_start_time = server_start_time).encode(utf8)
         client_socket.send(response_data)
