@@ -1,7 +1,6 @@
 from data_utils import serialize_json, deserialize_json
 from models import User
 
-
 def request_to_server(user):
     if user.logged_in == True:
         request = input("Choose command: uptime / info / help / show data / change data / send message /"
@@ -39,7 +38,15 @@ def response_to_client(client_request, **kwargs):
         return user.change_user_data(new_data_dict)
     elif client_request == "send message":
         user = kwargs.get("user")
-        return user.send_message()
+        recipient_data = kwargs.get("recipient_data")
+        message_data = kwargs.get("message_data")
+        if recipient_data and message_data:
+            recipient_data = deserialize_json(recipient_data)
+            message_data = deserialize_json(message_data)
+            return user.send_message(recipient_data, message_data)
+        elif recipient_data:
+            recipient_data = deserialize_json(recipient_data)
+            return serialize_json(recipient_data)
     elif client_request == "inbox":
         user = kwargs.get("user")
         return user.show_messages()
