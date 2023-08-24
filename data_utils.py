@@ -19,11 +19,4 @@ def read_json_file(filename):
         users_data = []
     return users_data
 
-def user_username_and_password_input():
-    username = input("Username: ")
-    password = input("Password: ")
-    user_data = {
-        "username": username,
-        "password": password
-    }
-    return user_data
+
