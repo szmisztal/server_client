@@ -1,8 +1,8 @@
 from network_utils import client_socket_create
 from communication_utils import request_to_server
-from data_utils import serialize_json, deserialize_json, user_username_and_password_input
+from data_utils import serialize_json, deserialize_json
 from variables import HOST, PORT, BUFFER, utf8
-from models import User
+from models import User, user_username_and_password_input, recipient_input, message_input
 
 
 client_socket = client_socket_create(HOST, PORT)
@@ -31,6 +31,19 @@ while True:
             response = deserialize_json(client_socket.recv(BUFFER))
             for key, value in response.items():
                 print(f"{key}: {value}")
+    elif request.decode(utf8) == "send message":
+        recipient_data = recipient_input()
+        recipient_json = serialize_json(recipient_data).encode(utf8)
+        client_socket.send(recipient_json)
+        response = deserialize_json(client_socket.recv(BUFFER))
+        for value in response.values():
+            print(f"You`ll send message to: {value}")
+        message = message_input()
+        message_json = serialize_json(message).encode(utf8)
+        client_socket.send(message_json)
+        response_message = deserialize_json(client_socket.recv(BUFFER))
+        for key, value in response_message.items():
+            print(f"{key}: {value}")
     else:
         response = deserialize_json(client_socket.recv(BUFFER))
         for key, value in response.items():
