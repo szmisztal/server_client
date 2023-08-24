@@ -1,10 +1,9 @@
 from datetime import datetime as dt
-from variables import server_version, server_start_date, users_file, messages_file
+from variables import server_version, server_start_date, users_file
 from data_utils import serialize_json, write_to_json_file, read_json_file
 
 
 users_list = read_json_file(users_file) or []
-messages_list = read_json_file(messages_file) or []
 
 class Command():
 
@@ -118,42 +117,66 @@ class User():
                 }
                 return serialize_json(success_msg)
 
-    def send_message(self):
-        recipient = input("Message to ?: ")
-        for u in users_list:
-            if recipient == u["username"]:
-                recipient = User(u["username"], u["password"])
-                message = input("Write message: ")
-                if len(message) > 255:
-                    print("Max message length = 255")
-                    break
-                elif len(recipient.user_messages) >= 5:
-                    print("Inbox full")
-                    break
-                else:
-                    message_dict = {
-                        "Message": message
-                    }
-                    messages = recipient.user_messages.append(message_dict)
-                    write_to_json_file(messages_file, messages)
-                    success_msg = {
-                        "Message": "Message send successfully"
-                    }
-                    return serialize_json(success_msg)
+    def send_message(self,  recipient_data, message_data):
+        message = message_data["message"]
+        recipient = User(**recipient_data)
+        if len(message) > 255:
+            print("Max message length = 255")
+        elif len(recipient.user_messages) >= 5:
+            print("Inbox full")
         else:
-            error_msg ={
-                "Error": "User not found"
+            message_dict = {
+                "Message from": self.username,
+                "Message to": recipient.username,
+                "Text": message
             }
-            return serialize_json(error_msg)
+            recipient.user_messages.append(message_data)
+            write_to_json_file(f"{recipient.username}_messages.json", message_dict)
+            success_msg = {
+                "Message": "Message send successfully"
+            }
+            return serialize_json(success_msg)
 
     def show_messages(self):
-        for m in self.user_messages:
+        user_messages = read_json_file(f"{self.username}.messages.json")
+        for m in user_messages:
             print(m)
 
     def __str__(self):
         return f"{self.username}, {self.password}, {self.logged_in}"
 
 
+
+def user_username_and_password_input():
+    username = input("Username: ")
+    password = input("Password: ")
+    user_data = {
+        "username": username,
+        "password": password
+    }
+    return user_data
+
+def recipient_input():
+    recipient = input("Who do you want to send a message to ?: ")
+    for u in users_list:
+        if recipient == u["username"]:
+            recipient_data = {
+                "username": u["username"],
+                "password": u["password"]
+            }
+            return recipient_data
+    else:
+        error_msg ={
+            "Error": "User not found"
+        }
+        return error_msg
+
+def message_input():
+    message = input("Write a message: ")
+    message_data = {
+        "message": message
+    }
+    return message_data
 
 
 
