@@ -3,7 +3,7 @@ from models import User
 
 def request_to_server(user):
     if user.logged_in == True:
-        request = input("Choose command: uptime / info / help / show data / change data / send message /"
+        request = input("Choose command: uptime / info / help / show data / change data / send message / "
                         "inbox / logout / stop \n")
         return request
     else:
@@ -11,13 +11,15 @@ def request_to_server(user):
         return request
 
 def response_to_client(client_request, **kwargs):
-    command = kwargs.get("command")
     if client_request == "uptime":
+        command = kwargs.get("command")
         server_start_time = kwargs.get("server_start_time")
         return command.uptime(server_start_time)
     elif client_request == "info":
+        command = kwargs.get("command")
         return command.info()
     elif client_request == "help":
+        command = kwargs.get("command")
         return command.help()
     elif client_request == "register":
         registration_data = kwargs.get("registration_data")
@@ -51,6 +53,7 @@ def response_to_client(client_request, **kwargs):
         user = kwargs.get("user")
         return user.show_messages()
     elif client_request == "logout":
+        command = kwargs.get("command")
         return command.logout()
     else:
         error_msg = {
