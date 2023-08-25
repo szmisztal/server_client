@@ -118,29 +118,35 @@ class User():
                 return serialize_json(success_msg)
 
     def send_message(self,  recipient_data, message_data):
+        print(recipient_data, type(recipient_data), 2)
         message = message_data["message"]
-        recipient = User(**recipient_data)
+        recipient = recipient_data["username"]
+        recipient_messages = read_json_file(f"{recipient}_messages.json") or []
         if len(message) > 255:
-            print("Max message length = 255")
-        elif len(recipient.user_messages) >= 5:
-            print("Inbox full")
+            error_msg = {
+                "Message": "Failed, max message length = 255"
+            }
+            return serialize_json(error_msg)
+        elif len(recipient_messages) >= 5:
+            error_msg = {
+                "Message": "Failed, inbox full"
+            }
+            return serialize_json(error_msg)
         else:
             message_dict = {
                 "Message from": self.username,
-                "Message to": recipient.username,
                 "Text": message
             }
-            recipient.user_messages.append(message_data)
-            write_to_json_file(f"{recipient.username}_messages.json", message_dict)
+            recipient_messages.append(message_dict)
+            write_to_json_file(f"{recipient}_messages.json", recipient_messages)
             success_msg = {
                 "Message": "Message send successfully"
             }
             return serialize_json(success_msg)
 
     def show_messages(self):
-        user_messages = read_json_file(f"{self.username}.messages.json")
-        for m in user_messages:
-            print(m)
+        self.user_messages = read_json_file(f"{self.username}_messages.json")
+        return serialize_json(self.user_messages)
 
     def __str__(self):
         return f"{self.username}, {self.password}, {self.logged_in}"
@@ -161,8 +167,7 @@ def recipient_input():
     for u in users_list:
         if recipient == u["username"]:
             recipient_data = {
-                "username": u["username"],
-                "password": u["password"]
+                "username": u["username"]
             }
             return recipient_data
     else:
