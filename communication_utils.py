@@ -4,7 +4,7 @@ from models import User
 def request_to_server(user):
     if user.logged_in == True:
         request = input("Choose command: uptime / info / help / show data / change data / send message / "
-                        "inbox / logout / stop \n")
+                        "inbox / archived messages / logout / stop \n")
         return request
     else:
         request = input("Choose command: register / login / stop \n")
@@ -51,7 +51,10 @@ def response_to_client(client_request, **kwargs):
             return serialize_json(recipient_data)
     elif client_request == "inbox":
         user = kwargs.get("user")
-        return user.show_messages()
+        return user.show_new_messages()
+    elif client_request == "archived messages":
+        user = kwargs.get("user")
+        return user.show_archived_messages()
     elif client_request == "logout":
         command = kwargs.get("command")
         return command.logout()
