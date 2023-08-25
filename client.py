@@ -44,7 +44,7 @@ while True:
         response_message = deserialize_json(client_socket.recv(BUFFER))
         for key, value in response_message.items():
             print(f"{key}: {value}")
-    elif request.decode(utf8) == "inbox":
+    elif request.decode(utf8) in ["inbox", "archived messages"]:
         response = deserialize_json(client_socket.recv(BUFFER))
         for message in response:
             print(message)
