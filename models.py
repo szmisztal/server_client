@@ -100,6 +100,7 @@ class User():
     def change_user_data(self, new_data_dict):
         new_username = new_data_dict["username"]
         new_password = new_data_dict["password"]
+        user_messages = read_json_file(f"{self.username}_messages.json")
         for u in users_list:
             stored_username = u["username"]
             if stored_username == new_username and stored_username != self.username:
@@ -112,13 +113,13 @@ class User():
                 u["username"] = self.username = new_username
                 u["password"] = self.password = new_password
                 write_to_json_file(users_file, users_list)
+                write_to_json_file(f"{self.username}_messages.json", user_messages)
                 success_msg = {
                     "Success": f"Your new data: username = {self.username}, password = {self.password}"
                 }
                 return serialize_json(success_msg)
 
     def send_message(self,  recipient_data, message_data):
-        print(recipient_data, type(recipient_data), 2)
         message = message_data["message"]
         recipient = recipient_data["username"]
         recipient_messages = read_json_file(f"{recipient}_messages.json") or []
@@ -152,6 +153,11 @@ class User():
         return f"{self.username}, {self.password}, {self.logged_in}"
 
 
+
+class Admin(User):
+    pass
+
+# INPUT FUNCTIONS
 
 def user_username_and_password_input():
     username = input("Username: ")
