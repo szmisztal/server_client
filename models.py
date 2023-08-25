@@ -47,7 +47,8 @@ class User():
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.user_messages = []
+        self.new_messages = []
+        self.archived_messages = []
         self.logged_in = False
 
     @classmethod
@@ -100,7 +101,8 @@ class User():
     def change_user_data(self, new_data_dict):
         new_username = new_data_dict["username"]
         new_password = new_data_dict["password"]
-        user_messages = read_json_file(f"{self.username}_messages.json")
+        new_messages = read_json_file(f"{self.username}_new_messages.json") or []
+        archived_messages = read_json_file(f"{self.username}_archived_messages.json") or []
         for u in users_list:
             stored_username = u["username"]
             if stored_username == new_username and stored_username != self.username:
@@ -113,7 +115,8 @@ class User():
                 u["username"] = self.username = new_username
                 u["password"] = self.password = new_password
                 write_to_json_file(users_file, users_list)
-                write_to_json_file(f"{self.username}_messages.json", user_messages)
+                write_to_json_file(f"{self.username}_new_messages.json", new_messages)
+                write_to_json_file(f"{self.username}_archived_messages.json", archived_messages)
                 success_msg = {
                     "Success": f"Your new data: username = {self.username}, password = {self.password}"
                 }
@@ -122,7 +125,7 @@ class User():
     def send_message(self,  recipient_data, message_data):
         message = message_data["message"]
         recipient = recipient_data["username"]
-        recipient_messages = read_json_file(f"{recipient}_messages.json") or []
+        recipient_messages = read_json_file(f"{recipient}_new_messages.json") or []
         if len(message) > 255:
             error_msg = {
                 "Message": "Failed, max message length = 255"
@@ -139,15 +142,25 @@ class User():
                 "Text": message
             }
             recipient_messages.append(message_dict)
-            write_to_json_file(f"{recipient}_messages.json", recipient_messages)
+            write_to_json_file(f"{recipient}_new_messages.json", recipient_messages)
             success_msg = {
                 "Message": "Message send successfully"
             }
             return serialize_json(success_msg)
 
-    def show_messages(self):
-        self.user_messages = read_json_file(f"{self.username}_messages.json")
-        return serialize_json(self.user_messages)
+    def show_new_messages(self):
+        new_messages = read_json_file(f"{self.username}_new_messages.json") or []
+        messages_to_read = new_messages.copy()
+        archived_messages = read_json_file(f"{self.username}_archived_messages.json")
+        archived_messages.extend(new_messages)
+        new_messages = []
+        write_to_json_file(f"{self.username}_new_messages.json", new_messages)
+        write_to_json_file(f"{self.username}_archived_messages.json", archived_messages)
+        return serialize_json(messages_to_read)
+
+    def show_archived_messages(self):
+        archived_messages = read_json_file(f"{self.username}_archived_messages.json")
+        return serialize_json(archived_messages)
 
     def __str__(self):
         return f"{self.username}, {self.password}, {self.logged_in}"
