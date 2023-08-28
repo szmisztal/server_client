@@ -40,11 +40,15 @@ while True:
             client_socket.send(response_data)
         elif client_request == "send message":
             recipient_data = client_socket.recv(BUFFER).decode(utf8)
-            response_data = response_to_client(client_request, recipient_data = recipient_data).encode(utf8)
-            client_socket.send(response_data)
-            message_data = client_socket.recv(BUFFER).decode(utf8)
-            response_message = response_to_client(client_request, user = user, recipient_data = recipient_data, message_data = message_data).encode(utf8)
-            client_socket.send(response_message)
+            if "Error" in recipient_data:
+                response_data = recipient_data.encode(utf8)
+                client_socket.send(response_data)
+            else:
+                response_data = response_to_client(client_request, recipient_data = recipient_data).encode(utf8)
+                client_socket.send(response_data)
+                message_data = client_socket.recv(BUFFER).decode(utf8)
+                response_message = response_to_client(client_request, user = user, recipient_data = recipient_data, message_data = message_data).encode(utf8)
+                client_socket.send(response_message)
         else:
             response_data = response_to_client(client_request).encode(utf8)
             client_socket.send(response_data)
