@@ -36,6 +36,10 @@ while True:
         recipient_json = serialize_json(recipient_data).encode(utf8)
         client_socket.send(recipient_json)
         response = deserialize_json(client_socket.recv(BUFFER))
+        if "Error" in response:
+            for key, value in response.items():
+                print(f"{key}: {value}")
+            continue
         for value in response.values():
             print(f"You`ll send message to: {value}")
         message = message_input()
