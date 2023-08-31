@@ -2,7 +2,6 @@ from communication_utils import response_to_client
 from network_utils import server_socket_create
 from variables import HOST, PORT, BUFFER, utf8, server_start_time
 from models import Command, User
-from data_utils import serialize_json
 
 
 server_socket = server_socket_create(HOST, PORT)
@@ -23,7 +22,7 @@ while True:
         elif client_request in ["info", "help", "logout"]:
             response_data = response_to_client(client_request, command = command).encode(utf8)
             client_socket.send(response_data)
-        elif client_request == "register":
+        elif client_request in ["admin register", "register"]:
             registration_data = client_socket.recv(BUFFER).decode(utf8)
             response_data = response_to_client(client_request, registration_data = registration_data).encode(utf8)
             client_socket.send(response_data)
