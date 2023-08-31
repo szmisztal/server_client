@@ -47,9 +47,8 @@ class User():
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.new_messages = []
-        self.archived_messages = []
         self.logged_in = False
+        self.role = "Regular"
 
     @classmethod
     def register_user(cls, registration_data_dict):
@@ -64,7 +63,8 @@ class User():
         user = cls(**registration_data_dict)
         user_dict = {
             "username": user.username,
-            "password": user.password
+            "password": user.password,
+            "role": user.role
         }
         users_list.append(user_dict)
         write_to_json_file(users_file, users_list)
@@ -94,7 +94,7 @@ class User():
 
     def show_current_data(self):
         current_data_msg = {
-            "Your current username and password:": f"Username: {self.username}, password: {self.password}"
+            "Your current username and password:": f"Username: {self.username}, password: {self.password}, role: {self.role}"
         }
         return serialize_json(current_data_msg)
 
@@ -166,9 +166,12 @@ class User():
         return f"{self.username}, {self.password}, {self.logged_in}"
 
 
-
 class Admin(User):
-    pass
+
+    def __init__(self, username, password):
+        super().__init__(username, password)
+        self.logged_in = False
+        self.role = "Admin"
 
 # INPUT FUNCTIONS
 
