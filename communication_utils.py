@@ -1,5 +1,5 @@
 from data_utils import serialize_json, deserialize_json
-from models import User
+from models import User, Admin
 
 def request_to_server(user):
     if user.logged_in == True:
@@ -21,10 +21,13 @@ def response_to_client(client_request, **kwargs):
     elif client_request == "help":
         command = kwargs.get("command")
         return command.help()
-    elif client_request == "register":
+    elif client_request in ["admin register", "register"]:
         registration_data = kwargs.get("registration_data")
         registration_data_dict = deserialize_json(registration_data)
-        return User.register_user(registration_data_dict)
+        if client_request == "register":
+            return User.register_user(registration_data_dict)
+        elif client_request == "admin register":
+            return Admin.register_user(registration_data_dict)
     elif client_request == "show data":
         user = kwargs.get("user")
         return user.show_current_data()
