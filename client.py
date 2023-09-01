@@ -6,7 +6,8 @@ from models import User, user_username_and_password_input, recipient_input, mess
 
 
 client_socket = client_socket_create(HOST, PORT)
-user = User("", "")
+user = User("", "", False)
+
 
 while True:
     request = request_to_server(user).encode(utf8)
@@ -17,12 +18,14 @@ while True:
         exit()
     elif request.decode(utf8) in ["register", "admin register", "login", "change data"]:
         user_data = user_username_and_password_input()
+        if request.decode(utf8) == "admin register":
+            user_data["admin_role"] = True
         user_json_data = serialize_json(user_data).encode(utf8)
         client_socket.send(user_json_data)
         response = deserialize_json(client_socket.recv(BUFFER))
         for key, value in response.items():
             print(f"{key} : {value}")
-        if "Message" in response and "logged in" in response["Message"]:
+        if "Message" in response and "You was logged in" in response["Message"]:
             user = User(**user_data)
             user.logged_in = True
     elif request.decode(utf8) == "logout":
