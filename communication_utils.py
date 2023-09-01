@@ -1,7 +1,8 @@
 from data_utils import serialize_json, deserialize_json
-from models import User, Admin
+from models import User
 
 def request_to_server(user):
+    print(user)
     if user.logged_in == True:
         request = input("Choose command: uptime / info / help / show data / change data / send message / "
                         "inbox / archived messages / logout / stop \n")
@@ -24,14 +25,11 @@ def response_to_client(client_request, **kwargs):
     elif client_request in ["admin register", "register"]:
         registration_data = kwargs.get("registration_data")
         registration_data_dict = deserialize_json(registration_data)
-        if client_request == "register":
-            return User.register_user(registration_data_dict)
-        elif client_request == "admin register":
-            return Admin.register_user(registration_data_dict)
+        return User.register_user(registration_data_dict)
     elif client_request == "show data":
         user = kwargs.get("user")
         return user.show_current_data()
-    elif client_request == "login":
+    elif client_request  == "login":
         user = kwargs.get("user")
         login_data = kwargs.get("login_data")
         login_data_dict = deserialize_json(login_data)
@@ -66,7 +64,6 @@ def response_to_client(client_request, **kwargs):
             "Unknown command": f"'{client_request}', try again"
         }
         return serialize_json(error_msg)
-
 
 
 
