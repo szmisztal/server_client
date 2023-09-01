@@ -44,15 +44,16 @@ class Command():
 
 class User():
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, admin_role):
         self.username = username
         self.password = password
         self.logged_in = False
-        self.role = "Regular"
+        self.admin_role = False
 
     @classmethod
     def register_user(cls, registration_data_dict):
         username = registration_data_dict["username"]
+        admin_role = registration_data_dict["admin_role"]
         for u in users_list:
             stored_username = u["username"]
             if username == stored_username:
@@ -64,7 +65,7 @@ class User():
         user_dict = {
             "username": user.username,
             "password": user.password,
-            "role": user.role
+            "admin_role": admin_role
         }
         users_list.append(user_dict)
         write_to_json_file(users_file, users_list)
@@ -76,13 +77,19 @@ class User():
     def login_user(self, login_data_dict):
         self.username = login_data_dict["username"]
         self.password = login_data_dict["password"]
+        self.admin_role = login_data_dict["admin_role"]
         for u in users_list:
             stored_username = u["username"]
             stored_password = u["password"]
             if self.username == stored_username and self.password == stored_password:
-                login_msg = {
-                    "Message": "You was logged in"
-                }
+                if self.admin_role == True:
+                    login_msg = {
+                        "Admin": "You`re welcome"
+                    }
+                else:
+                    login_msg = {
+                        "Message": "You was logged in"
+                    }
                 return serialize_json(login_msg)
         error_msg = {
             "Message": "Incorrect data. try again"
@@ -94,7 +101,7 @@ class User():
 
     def show_current_data(self):
         current_data_msg = {
-            "Your current username and password:": f"Username: {self.username}, password: {self.password}, role: {self.role}"
+            "Your current username and password:": f"Username: {self.username}, password: {self.password}, admin role: {self.admin_role}"
         }
         return serialize_json(current_data_msg)
 
@@ -163,15 +170,8 @@ class User():
         return serialize_json(archived_messages)
 
     def __str__(self):
-        return f"{self.username}, {self.password}, {self.logged_in}"
+        return f"{self.username}, {self.password}, {self.logged_in}, {self.admin_role}"
 
-
-class Admin(User):
-
-    def __init__(self, username, password):
-        super().__init__(username, password)
-        self.logged_in = False
-        self.role = "Admin"
 
 # INPUT FUNCTIONS
 
@@ -180,7 +180,8 @@ def user_username_and_password_input():
     password = input("Password: ")
     user_data = {
         "username": username,
-        "password": password
+        "password": password,
+        "admin_role": False
     }
     return user_data
 
@@ -204,6 +205,4 @@ def message_input():
         "message": message
     }
     return message_data
-
-
 
