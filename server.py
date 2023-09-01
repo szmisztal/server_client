@@ -6,7 +6,7 @@ from models import Command, User
 
 server_socket = server_socket_create(HOST, PORT)
 command = Command()
-user = User("", "")
+user = User("", "", False)
 
 while True:
     client_socket, address = server_socket.accept()
