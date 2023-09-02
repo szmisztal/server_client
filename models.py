@@ -139,10 +139,13 @@ class User():
             }
             return serialize_json(error_msg)
         elif len(recipient_messages) >= 5:
-            error_msg = {
-                "Message": "Failed, inbox full"
-            }
-            return serialize_json(error_msg)
+            if self.admin_role == False:
+                error_msg = {
+                    "Message": "Failed, inbox full"
+                }
+                return serialize_json(error_msg)
+            else:
+                pass
         else:
             message_dict = {
                 "Message from": self.username,
@@ -205,4 +208,3 @@ def message_input():
         "message": message
     }
     return message_data
-

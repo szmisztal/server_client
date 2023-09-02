@@ -2,7 +2,6 @@ from data_utils import serialize_json, deserialize_json
 from models import User
 
 def request_to_server(user):
-    print(user)
     if user.logged_in == True:
         request = input("Choose command: uptime / info / help / show data / change data / send message / "
                         "inbox / archived messages / logout / stop \n")
