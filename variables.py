@@ -1,12 +1,11 @@
-from datetime import datetime as dt
+import socket as s
+
 
 HOST = "127.0.0.1"
 PORT = 65432
 BUFFER = 1024
-utf8 = "UTF-8"
-server_version = "0.1.3"
-server_start_date = "12.08.2023"
-server_status = True
-server_start_time = dt.now()
-users_file = "users.json"
+encode_format = "UTF-8"
+INTERNET_ADDRESS_FAMILY = s.AF_INET
+SOCKET_TYPE = s.SOCK_STREAM
+
 
