@@ -1,21 +1,48 @@
+from datetime import datetime as dt
 
 
-
-class Request:
-    def __init__(self):
+class CommunicationUtils:
+    def __init__(self, server):
+        self.server = server
         self.commands_list = ["uptime", "info", "help", "stop"]
 
-    def validate_command(self, command):
-        if command not in self.commands_list:
+    def uptime(self):
+        current_time = dt.now()
+        server_uptime = current_time - self.server_start_time
+        uptime_dict = {
+            "Server uptime time": f"{server_uptime}"
+        }
+        return uptime_dict
+
+    def info(self):
+        server_info_dict = {
+            "Server start date:": self.server_start_date,
+            "Server version:": self.server_version
+        }
+        return server_info_dict
+
+    def help(self):
+        commands_dict = {
+            "Uptime": "Shows the lifetime of the server",
+            "Info": "Shows the current version and server start date",
+            "Help": "Shows available commands",
+            "Stop": "Shuts down the server"
+        }
+        return commands_dict
+
+    def response_to_client(self, client_request):
+        if client_request == "uptime":
+            return self.uptime()
+        elif client_request == "info":
+            return self.info()
+        elif client_request == "help":
+            return self.help()
+        else:
             error_message = {
-                "Unknown command": f"'{command}', try again"
+                "Unknown command": f"'{client_request}', try again"
             }
             return error_message
-        else:
-            pass
 
-class Response:
-    pass
 
 # def request_to_server(client_request):
 #     request = input("Choose command: uptime / info / help / show data / change data / send message / "
