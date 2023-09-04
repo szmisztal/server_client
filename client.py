@@ -1,61 +1,29 @@
-from network_utils import client_socket_create
-from communication_utils import request_to_server
-from data_utils import serialize_json, deserialize_json
-from variables import HOST, PORT, BUFFER, utf8
-from models import User, user_username_and_password_input, recipient_input, message_input
+import socket
+from data_utils import serialize_to_json, deserialize_json
+from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
 
 
-client_socket = client_socket_create(HOST, PORT)
-user = User("", "", False)
+class Client:
+    def __init__(self):
+        self.HOST = HOST
+        self.PORT = PORT
+        self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
+        self.SOCKET_TYPE = SOCKET_TYPE
+        self.BUFFER = BUFFER
+        self.is_running = True
+
+    def start(self):
+        with socket.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
+            client_socket.connect((HOST, PORT))
+            server_response = client_socket.recv(self.BUFFER)
+            deserialize_json(server_response)
+            print(server_response)
+            client_input = input()
+            client_request = {"Command": client_input}
+            serialize_to_json(client_request)
+            client_socket.sendall(client_request)
 
 
-while True:
-    request = request_to_server(user).encode(utf8)
-    client_socket.send(request)
-    if request.decode(utf8) == "stop":
-        print("Client closed")
-        client_socket.close()
-        exit()
-    elif request.decode(utf8) in ["register", "admin register", "login", "change data"]:
-        user_data = user_username_and_password_input()
-        if request.decode(utf8) == "admin register":
-            user_data["admin_role"] = True
-        user_json_data = serialize_json(user_data).encode(utf8)
-        client_socket.send(user_json_data)
-        response = deserialize_json(client_socket.recv(BUFFER))
-        for key, value in response.items():
-            print(f"{key} : {value}")
-        if "Message" in response and "You was logged in" in response["Message"]:
-            user = User(**user_data)
-            user.logged_in = True
-    elif request.decode(utf8) == "logout":
-        if user.logged_in == True:
-            user.logged_in = False
-            response = deserialize_json(client_socket.recv(BUFFER))
-            for key, value in response.items():
-                print(f"{key}: {value}")
-    elif request.decode(utf8) == "send message":
-        recipient_data = recipient_input()
-        recipient_json = serialize_json(recipient_data).encode(utf8)
-        client_socket.send(recipient_json)
-        response = deserialize_json(client_socket.recv(BUFFER))
-        if "Error" in response:
-            for key, value in response.items():
-                print(f"{key}: {value}")
-            continue
-        for value in response.values():
-            print(f"You`ll send message to: {value}")
-        message = message_input()
-        message_json = serialize_json(message).encode(utf8)
-        client_socket.send(message_json)
-        response_message = deserialize_json(client_socket.recv(BUFFER))
-        for key, value in response_message.items():
-            print(f"{key}: {value}")
-    elif request.decode(utf8) in ["inbox", "archived messages"]:
-        response = deserialize_json(client_socket.recv(BUFFER))
-        for message in response:
-            print(message)
-    else:
-        response = deserialize_json(client_socket.recv(BUFFER))
-        for key, value in response.items():
-            print(f"{key}: {value}")
+if __name__ == "__main__":
+    client = Client()
+    client.start()
