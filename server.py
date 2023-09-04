@@ -1,57 +1,50 @@
-from communication_utils import response_to_client
-from network_utils import server_socket_create
-from variables import HOST, PORT, BUFFER, utf8, server_start_time
-from models import Command, User
+import socket as s
+from communication_utils import Request, Response
+from data_utils import serialize_to_json, deserialize_json
+from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER
 
 
-server_socket = server_socket_create(HOST, PORT)
-command = Command()
-user = User("", "", False)
+class Server:
+    def __init__(self):
+        self.HOST = HOST
+        self.PORT = PORT
+        self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
+        self.SOCKET_TYPE = SOCKET_TYPE
+        self.BUFFER = BUFFER
+        self.request_from_client = Request()
+        self.response_to_client = Response()
+        self.is_running = True
+        self.server_start_date = "12.08.2023"
+        self.server_version = "0.1.4"
 
-while True:
-    client_socket, address = server_socket.accept()
-    print(f"Connected from {HOST}:{PORT}")
-    while True:
-        client_request = client_socket.recv(BUFFER).decode(utf8)
-        print(f"Client request: {client_request}")
-        if client_request == "stop":
-            break
-        elif client_request == "uptime":
-            response_data = response_to_client(client_request, command = command, server_start_time = server_start_time).encode(utf8)
-            client_socket.send(response_data)
-        elif client_request in ["info", "help", "logout"]:
-            response_data = response_to_client(client_request, command = command).encode(utf8)
-            client_socket.send(response_data)
-        elif client_request in ["admin register", "register"]:
-            registration_data = client_socket.recv(BUFFER).decode(utf8)
-            response_data = response_to_client(client_request, registration_data = registration_data).encode(utf8)
-            client_socket.send(response_data)
-        elif client_request == "login":
-            login_data = client_socket.recv(BUFFER).decode(utf8)
-            response_data = response_to_client(client_request, user = user, login_data = login_data).encode(utf8)
-            client_socket.send(response_data)
-        elif client_request in ["show data", "inbox", "archived messages"]:
-            response_data = response_to_client(client_request, user = user).encode(utf8)
-            client_socket.send(response_data)
-        elif client_request == "change data":
-            new_data = client_socket.recv(BUFFER).decode(utf8)
-            response_data = response_to_client(client_request, user = user, new_data = new_data).encode(utf8)
-            client_socket.send(response_data)
-        elif client_request == "send message":
-            recipient_data = client_socket.recv(BUFFER).decode(utf8)
-            if "Error" in recipient_data:
-                response_data = recipient_data.encode(utf8)
-                client_socket.send(response_data)
-            else:
-                response_data = response_to_client(client_request, recipient_data = recipient_data).encode(utf8)
-                client_socket.send(response_data)
-                message_data = client_socket.recv(BUFFER).decode(utf8)
-                response_message = response_to_client(client_request, user = user, recipient_data = recipient_data, message_data = message_data).encode(utf8)
-                client_socket.send(response_message)
-        else:
-            response_data = response_to_client(client_request).encode(utf8)
-            client_socket.send(response_data)
-    print(f"Connection from {HOST}:{PORT} closed")
-    client_socket.close()
-    server_socket.close()
-    exit()
+    def first_message_to_client(self, client_ip, client_port):
+        start_message = {
+            "Message": f"Welcome {client_ip}:{client_port}",
+            "Commands": "Type 'help' to see available commands"
+        }
+        return start_message
+
+    def start(self):
+        with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
+            server_socket.bind((self.HOST, self.PORT))
+            server_socket.listen()
+
+            client_socket, address = server_socket.accept()
+            client_ip = address[0]
+            client_port = address[1]
+            print(f"Connection from {client_ip}:{client_port}")
+            first_message_json = serialize_to_json(self.first_message_to_client(client_ip, client_port))
+            client_socket.sendall(first_message_json)
+
+            with client_socket:
+                while self.is_running:
+                    client_request = client_socket.recv(self.BUFFER)
+                    deserialize_json(client_request)
+                    print(client_request)
+
+
+if __name__ == "__main__":
+    server = Server()
+    print("The server starts")
+    server.start()
+
