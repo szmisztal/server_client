@@ -8,7 +8,7 @@ class CommunicationUtils:
 
     def uptime(self):
         current_time = dt.now()
-        server_uptime = current_time - self.server_start_time
+        server_uptime = current_time - self.server.server_start_time
         uptime_dict = {
             "Server uptime time": f"{server_uptime}"
         }
@@ -16,8 +16,8 @@ class CommunicationUtils:
 
     def info(self):
         server_info_dict = {
-            "Server start date:": self.server_start_date,
-            "Server version:": self.server_version
+            "Server start date:": self.server.server_start_date,
+            "Server version:": self.server.server_version
         }
         return server_info_dict
 
@@ -31,7 +31,9 @@ class CommunicationUtils:
         return commands_dict
 
     def response_to_client(self, client_request):
-        if client_request == "uptime":
+        if client_request == "stop":
+            return self.server.stop()
+        elif client_request == "uptime":
             return self.uptime()
         elif client_request == "info":
             return self.info()
