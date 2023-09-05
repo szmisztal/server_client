@@ -16,7 +16,7 @@ class Server:
         self.communication_utils = CommunicationUtils(self)
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "0.1.4"
+        self.server_version = "0.1.5"
         self.server_start_time = dt.now()
 
     def serialize_to_json(self, dict_data):
@@ -31,6 +31,12 @@ class Server:
         }
         return start_message
 
+    def read_client_request(self, client_request):
+        deserialized_dict = self.deserialize_json(client_request)
+        print(deserialized_dict)
+        request = deserialized_dict["Request"]
+        return request
+
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             server_socket.bind((self.HOST, self.PORT))
@@ -39,13 +45,23 @@ class Server:
             client_ip = address[0]
             client_port = address[1]
             print(f"Connection from {client_ip}:{client_port}")
-            client_socket.sendall(self.first_message_to_client())
+            welcome_message = self.serialize_to_json(self.first_message_to_client())
+            client_socket.sendall(welcome_message)
             with client_socket:
                 while self.is_running:
-                    client_request = client_socket.recv(self.BUFFER)
-                    response_to_client = self.response_to_client(client_request)
-                    response_to_client_json = serialize_to_json(response_to_client)
+                    client_request_json = client_socket.recv(self.BUFFER)
+                    client_request = self.read_client_request(client_request_json)
+                    response_to_client = self.communication_utils.response_to_client(client_request)
+                    response_to_client_json = self.serialize_to_json(response_to_client)
                     client_socket.sendall(response_to_client_json)
+
+    def stop(self):
+        stop_message = {
+            "Server status": "Shutting down"
+        }
+        print("THE SERVER IS SHUTTING DOWN...")
+        self.is_running = False
+        return stop_message
 
 
 if __name__ == "__main__":
