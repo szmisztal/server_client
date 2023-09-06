@@ -1,45 +1,46 @@
+from data_utils import DataUtils
+
+
+class UserUtils:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.logged_in = False
+        self.data_utils = DataUtils()
+        self.users_file = "users_list.json"
+        self.users_list = self.data_utils.read_json_file(self.users_file) or []
+
+    def validate_username(self, username):
+        for u in self.users_list:
+            stored_username = u["username"]
+            if stored_username == username:
+                return False
+        return True
+
+    def add_user_to_list_and_write_to_file(self, user_data):
+        self.users_list.append(user_data)
+        self.data_utils.write_to_json_file(self.users_file, self.users_list) or []
+
+    def register_user(self, client_request):
+        user_data = client_request["Register"]
+        username = user_data["username"]
+        password = user_data["password"]
+        validated_username = self.validate_username(username)
+        if validated_username == True:
+            user = UserUtils(username, password)
+            self.add_user_to_list_and_write_to_file(user_data)
+            register_message = {
+                f"User {user.username}": "Registered successfully"
+            }
+            return register_message
+        else:
+            error_message = {
+                "Username": "In use, choose another"
+            }
+            return error_message
 
 
 
-# users_list = read_json_file(users_file) or []
-#
-# class Command():
-#
-#     def uptime(self, server_start_time):
-#         current_time = dt.now()
-#         server_uptime = current_time - server_start_time
-#         uptime_dict = {
-#             "Server uptime time": f"{server_uptime}"
-#         }
-#         return serialize_json(uptime_dict)
-#
-#     def info(self):
-#         server_info = {
-#             "Server start date:": server_start_date,
-#             "Server version:": server_version
-#         }
-#         return serialize_json(server_info)
-#
-#     def help(self):
-#         commands = {
-#             "Uptime": "Shows the lifetime of the server",
-#             "Info": "Shows the current version and server start date",
-#             "Help": "Shows available commands",
-#             "Show data": "Shows your current user-data",
-#             "Change data": "Change your user-data",
-#             "Send message": "Send message to other user",
-#             "Inbox": "Shows messages in your inbox",
-#             "Stop": "Shuts down the server"
-#         }
-#         return serialize_json(commands)
-#
-#     def logout(self):
-#         logout_msg = {
-#             "Message": "You was logged out"
-#         }
-#         return serialize_json(logout_msg)
-#
-#
 # class User():
 #
 #     def __init__(self, username, password, admin_role):
