@@ -16,7 +16,7 @@ class Client:
 
     def make_request_to_server(self):
         client_input = input()
-        if client_input == "register":
+        if client_input in ["register", "login"]:
             user_data = self.user_data_input()
             return user_data
         else:
@@ -38,7 +38,7 @@ class Client:
             "password": password
         }
         user_data_request = {
-            "Register": user_data
+            "User": user_data
         }
         return user_data_request
 
