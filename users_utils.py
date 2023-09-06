@@ -38,40 +38,6 @@ class UserUtils:
                 "Username": "In use, choose another"
             }
             return error_message
-
-
-
-# class User():
-#
-#     def __init__(self, username, password, admin_role):
-#         self.username = username
-#         self.password = password
-#         self.logged_in = False
-#         self.admin_role = False
-#
-#     @classmethod
-#     def register_user(cls, registration_data_dict):
-#         username = registration_data_dict["username"]
-#         admin_role = registration_data_dict["admin_role"]
-#         for u in users_list:
-#             stored_username = u["username"]
-#             if username == stored_username:
-#                 error_msg = {
-#                     "Username": "In use, choose another"
-#                 }
-#                 return serialize_json(error_msg)
-#         user = cls(**registration_data_dict)
-#         user_dict = {
-#             "username": user.username,
-#             "password": user.password,
-#             "admin_role": admin_role
-#         }
-#         users_list.append(user_dict)
-#         write_to_json_file(users_file, users_list)
-#         register_msg = {
-#             "Message": f"User: {user.username}, registered successfully"
-#         }
-#         return serialize_json(register_msg)
 #
 #     def login_user(self, login_data_dict):
 #         self.username = login_data_dict["username"]
@@ -176,17 +142,6 @@ class UserUtils:
 #
 #
 # # INPUT FUNCTIONS
-#
-# def user_username_and_password_input():
-#     username = input("Username: ")
-#     password = input("Password: ")
-#     user_data = {
-#         "username": username,
-#         "password": password,
-#         "admin_role": False
-#     }
-#     return user_data
-#
 # def recipient_input():
 #     recipient = input("Who do you want to send a message to ?: ")
 #     for u in users_list:
