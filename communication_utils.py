@@ -3,10 +3,10 @@ from users_utils import UserUtils
 
 
 class CommunicationUtils:
-    def __init__(self, server, user):
+    def __init__(self, server):
         self.server = server
         self.user_utils = UserUtils("", "")
-        self.commands_list = ["uptime", "info", "help", "stop", "register"]
+        self.commands_list = ["uptime", "info", "help", "stop", "register", "login"]
 
     def uptime(self):
         current_time = dt.now()
@@ -48,7 +48,7 @@ class CommunicationUtils:
             return self.info()
         elif client_request == "help":
             return self.help()
-        elif "Register" in client_request:
+        elif "User" in client_request:
             return self.user_utils.register_user(client_request)
         else:
             return self.unknown_command(client_request)
