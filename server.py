@@ -13,11 +13,11 @@ class Server:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
-        self.communication_utils = CommunicationUtils(self, "")
+        self.communication_utils = CommunicationUtils(self)
         self.data_utils = DataUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "0.1.5"
+        self.server_version = "0.2.6"
         self.server_start_time = dt.now()
 
     def first_message_to_client(self):
@@ -32,7 +32,7 @@ class Server:
         if "Request" in deserialized_dict:
             request = deserialized_dict["Request"]
             return request
-        elif "Register" in deserialized_dict:
+        elif "User" in deserialized_dict:
             user_data = deserialized_dict
             return user_data
 
@@ -58,13 +58,13 @@ class Server:
         stop_message = {
             "Server status": "Shutting down"
         }
-        print("THE SERVER IS SHUTTING DOWN...")
+        print("SERVER CLOSED...")
         self.is_running = False
         return stop_message
 
 
 if __name__ == "__main__":
     server = Server()
-    print("THE SERVER STARTS...")
+    print("SERVER`S UP...")
     server.start()
 
