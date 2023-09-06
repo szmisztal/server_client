@@ -17,25 +17,49 @@ class UserUtils:
                 return False
         return True
 
+    def validate_username_and_password(self, username, password):
+        for u in self.users_list:
+            stored_username = u["username"]
+            stored_password = u["password"]
+            if stored_username == username and stored_password == password:
+                return True
+        return False
+
     def add_user_to_list_and_write_to_file(self, user_data):
         self.users_list.append(user_data)
         self.data_utils.write_to_json_file(self.users_file, self.users_list) or []
 
     def register_user(self, client_request):
-        user_data = client_request["Register"]
+        user_data = client_request["User"]
         username = user_data["username"]
-        password = user_data["password"]
         validated_username = self.validate_username(username)
         if validated_username == True:
-            user = UserUtils(username, password)
             self.add_user_to_list_and_write_to_file(user_data)
             register_message = {
-                f"User {user.username}": "Registered successfully"
+                f"User '{username}'": "Registered successfully"
             }
             return register_message
         else:
             error_message = {
                 "Username": "In use, choose another"
+            }
+            return error_message
+
+    def login_user(self, client_request):
+        user_data = client_request["User"]
+        username = user_data["username"]
+        password = user_data["password"]
+        validated_data = self.validate_username_and_password(username, password)
+        if validated_data == True:
+            user = UserUtils(username, password)
+            user.logged_in = True
+            login_message = {
+                f"User '{user.username}'": "Log in successfully"
+            }
+            return login_message
+        else:
+            error_message = {
+                "Incorrect data": "Try again"
             }
             return error_message
 #
