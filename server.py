@@ -32,7 +32,7 @@ class Server:
         if "Request" in deserialized_dict:
             request = deserialized_dict["Request"]
             return request
-        elif "User" in deserialized_dict:
+        elif "Register" or "Login" in deserialized_dict:
             user_data = deserialized_dict
             return user_data
 
