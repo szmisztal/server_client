@@ -24,13 +24,21 @@ class CommunicationUtils:
         return server_info_dict
 
     def help(self):
-        commands_dict = {
-            "Uptime": "Shows the lifetime of the server",
-            "Info": "Shows the current version and server start date",
-            "Help": "Shows available commands",
-            "Stop": "Shuts down the server"
-        }
-        return commands_dict
+        if self.user_utils.logged_in == True:
+            commands_dict = {
+                "Uptime": "Shows the lifetime of the server",
+                "Info": "Shows the current version and server start date",
+                "Help": "Shows available commands",
+                "Stop": "Shuts down the server"
+            }
+            return commands_dict
+        elif self.user_utils.logged_in == False:
+            commands_dict = {
+                "Register": "Register new user",
+                "Login": "Sign in",
+                "Stop": "Shuts down the server"
+            }
+            return commands_dict
 
     def unknown_command(self, client_request):
         if client_request not in self.commands_list:
@@ -48,8 +56,10 @@ class CommunicationUtils:
             return self.info()
         elif client_request == "help":
             return self.help()
-        elif "User" in client_request:
+        elif "Register" in client_request:
             return self.user_utils.register_user(client_request)
+        elif "Login" in client_request:
+            return self.user_utils.login_user(client_request)
         else:
             return self.unknown_command(client_request)
 
