@@ -21,16 +21,17 @@ class UserUtils:
         for u in self.users_list:
             stored_username = u["username"]
             stored_password = u["password"]
-            if stored_username == username and stored_password == password:
+            if username == stored_username and password == stored_password:
                 return True
         return False
+
 
     def add_user_to_list_and_write_to_file(self, user_data):
         self.users_list.append(user_data)
         self.data_utils.write_to_json_file(self.users_file, self.users_list) or []
 
     def register_user(self, client_request):
-        user_data = client_request["User"]
+        user_data = client_request["Register"]
         username = user_data["username"]
         validated_username = self.validate_username(username)
         if validated_username == True:
@@ -46,7 +47,7 @@ class UserUtils:
             return error_message
 
     def login_user(self, client_request):
-        user_data = client_request["User"]
+        user_data = client_request["Login"]
         username = user_data["username"]
         password = user_data["password"]
         validated_data = self.validate_username_and_password(username, password)
@@ -54,7 +55,7 @@ class UserUtils:
             user = UserUtils(username, password)
             user.logged_in = True
             login_message = {
-                f"User '{user.username}'": "Log in successfully"
+                f"User '{user.username}'": "Sign in successfully"
             }
             return login_message
         else:
