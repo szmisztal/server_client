@@ -17,7 +17,7 @@ class Client:
     def make_request_to_server(self):
         client_input = input()
         if client_input in ["register", "login"]:
-            user_data = self.user_data_input()
+            user_data = self.user_data_input(client_input)
             return user_data
         else:
             request_to_server = {
@@ -30,17 +30,23 @@ class Client:
         for key, value in deserialized_dict.items():
             print(f"{key}: {value}")
 
-    def user_data_input(self):
+    def user_data_input(self, client_input):
         username = input("Username: ")
         password = input("Password: ")
         user_data = {
             "username": username,
             "password": password
         }
-        user_data_request = {
-            "User": user_data
-        }
-        return user_data_request
+        if client_input == "register":
+            register_data_request = {
+                "Register": user_data
+            }
+            return register_data_request
+        elif client_input == "login":
+            login_data_request = {
+                "Login": user_data
+            }
+            return login_data_request
 
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
