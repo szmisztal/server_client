@@ -1,6 +1,8 @@
 import socket as s
 from data_utils import DataUtils
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from users_utils import User
+
 
 
 class Client:
@@ -27,8 +29,15 @@ class Client:
 
     def read_server_response(self, dict_data):
         deserialized_dict = self.data_utils.deserialize_json(dict_data)
-        for key, value in deserialized_dict.items():
-            print(f"{key}: {value}")
+        if "username" in deserialized_dict and "password" in deserialized_dict:
+            username = deserialized_dict["username"]
+            password = deserialized_dict["password"]
+            user = User(username, password)
+            user.logged_in = True
+            return user
+        else:
+            for key, value in deserialized_dict.items():
+                print(f"{key}: {value}")
 
     def user_data_input(self, client_input):
         username = input("Username: ")
