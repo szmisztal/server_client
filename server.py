@@ -3,6 +3,9 @@ from datetime import datetime as dt
 from communication_utils import CommunicationUtils
 from data_utils import DataUtils
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from users_utils import User
+
+user = User("", "")
 
 
 class Server:
