@@ -1,7 +1,7 @@
 from data_utils import DataUtils
 
 
-class UserUtils:
+class User:
     def __init__(self, username, password):
         self.username = username
         self.password = password
@@ -10,14 +10,14 @@ class UserUtils:
         self.users_file = "users_list.json"
         self.users_list = self.data_utils.read_json_file(self.users_file) or []
 
-    def validate_username(self, username):
+    def is_username_available(self, username):
         for u in self.users_list:
             stored_username = u["username"]
             if stored_username == username:
                 return False
         return True
 
-    def validate_username_and_password(self, username, password):
+    def validate_credentials(self, username, password):
         for u in self.users_list:
             stored_username = u["username"]
             stored_password = u["password"]
@@ -25,15 +25,14 @@ class UserUtils:
                 return True
         return False
 
-
     def add_user_to_list_and_write_to_file(self, user_data):
         self.users_list.append(user_data)
-        self.data_utils.write_to_json_file(self.users_file, self.users_list) or []
+        self.data_utils.write_to_json_file(self.users_file, self.users_list)
 
     def register_user(self, client_request):
         user_data = client_request["Register"]
         username = user_data["username"]
-        validated_username = self.validate_username(username)
+        validated_username = self.is_username_available(username)
         if validated_username == True:
             self.add_user_to_list_and_write_to_file(user_data)
             register_message = {
@@ -50,12 +49,10 @@ class UserUtils:
         user_data = client_request["Login"]
         username = user_data["username"]
         password = user_data["password"]
-        validated_data = self.validate_username_and_password(username, password)
+        validated_data = self.validate_credentials(username, password)
         if validated_data == True:
-            user = UserUtils(username, password)
-            user.logged_in = True
             login_message = {
-                f"User '{user.username}'": "Sign in successfully"
+                f"User '{username}'": "Sign in successfully"
             }
             return login_message
         else:
@@ -63,6 +60,9 @@ class UserUtils:
                 "Incorrect data": "Try again"
             }
             return error_message
+
+    def __str__(self):
+        return f"{self.username}, {self.password}, {self.logged_in}"
 #
 #     def login_user(self, login_data_dict):
 #         self.username = login_data_dict["username"]
