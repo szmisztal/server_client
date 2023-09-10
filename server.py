@@ -5,8 +5,6 @@ from data_utils import DataUtils
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from users_utils import User
 
-user = User("", "")
-
 
 class Server:
     def __init__(self):
@@ -32,12 +30,15 @@ class Server:
     def read_client_request(self, client_request):
         deserialized_dict = self.data_utils.deserialize_json(client_request)
         print(deserialized_dict)
-        if "Request" in deserialized_dict:
-            request = deserialized_dict["Request"]
-            return request
-        elif "Register" or "Login" in deserialized_dict:
-            user_data = deserialized_dict
-            return user_data
+        request = deserialized_dict.get("Request")
+        user_data = deserialized_dict.get("User")
+        if request is not None:
+            if user_data is not None:
+                return (request, user_data)
+            else:
+                return request
+        elif "Register" in deserialized_dict or "Login" in deserialized_dict:
+            return deserialized_dict
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
@@ -46,6 +47,7 @@ class Server:
             client_socket, address = server_socket.accept()
             client_ip = address[0]
             client_port = address[1]
+            user = User("", "")
             print(f"Connection from {client_ip}:{client_port}")
             welcome_message = self.data_utils.serialize_to_json(self.first_message_to_client())
             client_socket.sendall(welcome_message)
@@ -53,7 +55,15 @@ class Server:
                 while self.is_running:
                     client_request_json = client_socket.recv(self.BUFFER)
                     client_request = self.read_client_request(client_request_json)
-                    response_to_client = self.communication_utils.response_to_client(client_request)
+                    if type(client_request) == tuple:
+                        client_command = client_request[0]
+                        user = client_request[1]
+                    elif type(client_request) == dict:
+                        client_command = next(iter(client_request))
+                        user = next(iter(client_request.values()))
+                    else:
+                        client_command = client_request
+                    response_to_client = self.communication_utils.response_to_client(client_request = client_command, user = user)
                     response_to_client_json = self.data_utils.serialize_to_json(response_to_client)
                     client_socket.sendall(response_to_client_json)
 
