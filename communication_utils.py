@@ -2,12 +2,10 @@ from datetime import datetime as dt
 from users_utils import User
 
 
-user = User("", "")
-
-
 class CommunicationUtils:
     def __init__(self, server):
         self.server = server
+        self.user = User("", "")
         self.commands_list = ["uptime", "info", "help", "stop", "register", "login"]
 
     def uptime(self):
@@ -25,8 +23,9 @@ class CommunicationUtils:
         }
         return server_info_dict
 
-    def help(self):
-        if user.logged_in == True:
+    def help(self, user):
+        login_status = user["login_status"]
+        if login_status == "True":
             commands_dict = {
                 "Uptime": "Shows the lifetime of the server",
                 "Info": "Shows the current version and server start date",
@@ -34,7 +33,7 @@ class CommunicationUtils:
                 "Stop": "Shuts down the server"
             }
             return commands_dict
-        else:
+        elif login_status == "False" or login_status == None:
             commands_dict = {
                 "Register": "Register new user",
                 "Login": "Sign in",
@@ -49,7 +48,9 @@ class CommunicationUtils:
             }
             return error_message
 
-    def response_to_client(self, client_request, **kwargs):
+    def response_to_client(self, **kwargs):
+        client_request = kwargs.get("client_request")
+        user = kwargs.get("user")
         if client_request == "stop":
             return self.server.stop()
         elif client_request == "uptime":
@@ -59,9 +60,9 @@ class CommunicationUtils:
         elif client_request == "help":
             return self.help(user)
         elif "Register" in client_request:
-            return user.register_user(client_request)
+            return self.user.register_user(user)
         elif "Login" in client_request:
-            return user.login_user(client_request)
+            return self.user.login_user(user)
         else:
             return self.unknown_command(client_request)
 
