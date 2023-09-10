@@ -29,8 +29,7 @@ class User:
         self.users_list.append(user_data)
         self.data_utils.write_to_json_file(self.users_file, self.users_list)
 
-    def register_user(self, client_request):
-        user_data = client_request["Register"]
+    def register_user(self, user_data):
         username = user_data["username"]
         validated_username = self.is_username_available(username)
         if validated_username == True:
@@ -45,8 +44,7 @@ class User:
             }
             return error_message
 
-    def login_user(self, client_request):
-        user_data = client_request["Login"]
+    def login_user(self, user_data):
         username = user_data["username"]
         password = user_data["password"]
         validated_data = self.validate_credentials(username, password)
