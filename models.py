@@ -50,29 +50,37 @@ class User():
         self.logged_in = False
         self.admin_role = False
 
+    @staticmethod
+    def validate_username(username):
+        for u in users_list:
+            stored_username = u["username"]
+            if username == stored_username:
+                return False
+        return True
+
     @classmethod
     def register_user(cls, registration_data_dict):
         username = registration_data_dict["username"]
         admin_role = registration_data_dict["admin_role"]
-        for u in users_list:
-            stored_username = u["username"]
-            if username == stored_username:
+        validate_username = cls.validate_username(username)
+        if validate_username == False:
                 error_msg = {
                     "Username": "In use, choose another"
                 }
                 return serialize_json(error_msg)
-        user = cls(**registration_data_dict)
-        user_dict = {
-            "username": user.username,
-            "password": user.password,
-            "admin_role": admin_role
-        }
-        users_list.append(user_dict)
-        write_to_json_file(users_file, users_list)
-        register_msg = {
-            "Message": f"User: {user.username}, registered successfully"
-        }
-        return serialize_json(register_msg)
+        else:
+            user = cls(**registration_data_dict)
+            user_dict = {
+                "username": user.username,
+                "password": user.password,
+                "admin_role": admin_role
+            }
+            users_list.append(user_dict)
+            write_to_json_file(users_file, users_list)
+            register_msg = {
+                "Message": f"User: {user.username}, registered successfully"
+            }
+            return serialize_json(register_msg)
 
     def login_user(self, login_data_dict):
         self.username = login_data_dict["username"]
