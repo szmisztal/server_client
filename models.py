@@ -58,25 +58,38 @@ class User():
                 return False
         return True
 
+    @staticmethod
+    def validate_username_and_password(username, password):
+        for u in users_list:
+            stored_username = u["username"]
+            stored_password = u["password"]
+            if username == stored_username and password == stored_password:
+                return True
+        return False
+
+    @staticmethod
+    def add_user_to_list_and_save_it_to_file(user, admin_role):
+        user_dict = {
+            "username": user.username,
+            "password": user.password,
+            "admin_role": admin_role
+        }
+        users_list.append(user_dict)
+        write_to_json_file(users_file, users_list)
+
     @classmethod
     def register_user(cls, registration_data_dict):
         username = registration_data_dict["username"]
         admin_role = registration_data_dict["admin_role"]
-        validate_username = cls.validate_username(username)
-        if validate_username == False:
+        validated_username = cls.validate_username(username)
+        if validated_username == False:
                 error_msg = {
                     "Username": "In use, choose another"
                 }
                 return serialize_json(error_msg)
         else:
             user = cls(**registration_data_dict)
-            user_dict = {
-                "username": user.username,
-                "password": user.password,
-                "admin_role": admin_role
-            }
-            users_list.append(user_dict)
-            write_to_json_file(users_file, users_list)
+            cls.add_user_to_list_and_save_it_to_file(user, admin_role)
             register_msg = {
                 "Message": f"User: {user.username}, registered successfully"
             }
@@ -86,23 +99,22 @@ class User():
         self.username = login_data_dict["username"]
         self.password = login_data_dict["password"]
         self.admin_role = login_data_dict["admin_role"]
-        for u in users_list:
-            stored_username = u["username"]
-            stored_password = u["password"]
-            if self.username == stored_username and self.password == stored_password:
-                if self.admin_role == True:
-                    login_msg = {
-                        "Admin": "You`re welcome"
-                    }
-                else:
-                    login_msg = {
-                        "Message": "You was logged in"
-                    }
-                return serialize_json(login_msg)
-        error_msg = {
-            "Message": "Incorrect data. try again"
-        }
-        return serialize_json(error_msg)
+        validated_user_data = self.validate_username_and_password(self.username, self.password)
+        if validated_user_data == True:
+            if self.admin_role == True:
+                login_msg = {
+                    "Admin": "You`re welcome"
+                }
+            else:
+                login_msg = {
+                    "Message": "You was logged in"
+                }
+            return serialize_json(login_msg)
+        else:
+            error_msg = {
+                "Message": "Incorrect data. try again"
+            }
+            return serialize_json(error_msg)
 
     def is_logged_in(self):
         return self.logged_in
@@ -118,9 +130,8 @@ class User():
         new_password = new_data_dict["password"]
         new_messages = read_json_file(f"{self.username}_new_messages.json") or []
         archived_messages = read_json_file(f"{self.username}_archived_messages.json") or []
-        for u in users_list:
-            stored_username = u["username"]
-            if stored_username == new_username and stored_username != self.username:
+        validated_username = self.validate_username(new_username)
+        if validated_username == False:
                 error_msg = {
                     "Username": "In use, choose another"
                 }
