@@ -6,12 +6,14 @@ def request_to_server(user):
         request = input("--------------------------------------------------------\n"
                         "Choose command: uptime / info / help / show data / change data / send message / "
                         "inbox / archived messages / logout / stop \n"
-                        "--------------------------------------------------------\n")
+                        "--------------------------------------------------------\n"
+                        "REQUEST: ")
         return request
     else:
         request = input("--------------------------------------------------------\n"
                         "Choose command: register / login / stop \n"
-                        "--------------------------------------------------------\n")
+                        "--------------------------------------------------------\n"
+                        "REQUEST: ")
         return request
 
 def read_server_response(data_dict):
