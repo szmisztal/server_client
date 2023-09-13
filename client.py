@@ -3,6 +3,7 @@ from data_utils import DataUtils
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from users_utils import User
 
+user = User("", "")
 
 class Client:
     def __init__(self):
@@ -16,10 +17,26 @@ class Client:
         self.is_running = True
 
     def make_request_to_server(self, client_input):
-        request_to_server ={
-            "Request": client_input
+        if client_input == "register":
+            user_data_input = self.user_data_input()
+            user_data = {
+                "Register": user_data_input
+            }
+            return user_data
+        else:
+            request_to_server ={
+                "Request": client_input
+            }
+            return request_to_server
+
+    def user_data_input(self):
+        username = input("Username: ")
+        password = input("Password: ")
+        user_data = {
+            "username": username,
+            "password": password
         }
-        return request_to_server
+        return user_data
 
     def read_server_response(self, dict_data):
         deserialized_dict = self.data_utils.deserialize_json(dict_data)
