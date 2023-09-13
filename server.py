@@ -30,8 +30,12 @@ class Server:
     def read_client_request(self, client_request):
         deserialized_dict = self.data_utils.deserialize_json(client_request)
         print(deserialized_dict)
-        request = deserialized_dict.get("Request").lower()
-        return request
+        if "Request" in deserialized_dict:
+            request = deserialized_dict.get("Request").lower()
+            return request
+        else:
+            user_data = deserialized_dict
+            return user_data
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
