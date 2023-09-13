@@ -33,10 +33,12 @@ class User:
     def register_user(self, user_data):
         username = user_data["username"]
         validated_username = self.is_username_available(username)
+        user_data_dict = user_data
         if validated_username == True:
             self.add_user_to_list_and_write_to_file(user_data)
             register_message = {
-                f"User '{username}'": "Registered successfully"
+                f"User": "Registered successfully",
+                "your data": user_data_dict
             }
             return register_message
         else:
