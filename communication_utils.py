@@ -1,6 +1,7 @@
 from datetime import datetime as dt
 from users_utils import User
 
+user = User("", "")
 
 class CommunicationUtils:
     def __init__(self, server):
@@ -52,6 +53,9 @@ class CommunicationUtils:
             return self.info()
         elif client_request == "help":
             return self.help()
+        elif "Register" in client_request:
+            user_data = client_request["Register"]
+            return user.register_user(user_data)
         else:
             return self.unknown_command(client_request)
 
