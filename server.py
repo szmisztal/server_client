@@ -18,12 +18,12 @@ class Server:
         self.data_utils = DataUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "0.2.6"
+        self.server_version = "0.2.7"
         self.server_start_time = dt.now()
 
     def first_message_to_client(self):
         start_message = {
-            "Welcome": "Type 'help' to see available commands"
+            "Client status": "CONNECTED"
         }
         return start_message
 
@@ -44,6 +44,7 @@ class Server:
             client_socket, address = server_socket.accept()
             client_ip = address[0]
             client_port = address[1]
+            user = User("", "")
             print(f"Connection from {client_ip}:{client_port}")
             welcome_message = self.data_utils.serialize_to_json(self.first_message_to_client())
             client_socket.sendall(welcome_message)
@@ -51,7 +52,7 @@ class Server:
                 while self.is_running:
                     client_request_json = client_socket.recv(self.BUFFER)
                     client_request = self.read_client_request(client_request_json)
-                    response_to_client = self.communication_utils.response_to_client(client_request)
+                    response_to_client = self.communication_utils.response_to_client(client_request, user)
                     response_to_client_json = self.data_utils.serialize_to_json(response_to_client)
                     client_socket.sendall(response_to_client_json)
 
