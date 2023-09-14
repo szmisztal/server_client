@@ -5,8 +5,8 @@ class User:
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.logged_in = False
         self.admin_role = False
+        self.logged_in = False
         self.data_utils = DataUtils()
         self.users_file = "users_list.json"
         self.users_list = self.data_utils.read_json_file(self.users_file) or []
@@ -33,12 +33,10 @@ class User:
     def register_user(self, user_data):
         username = user_data["username"]
         validated_username = self.is_username_available(username)
-        user_data_dict = user_data
         if validated_username == True:
             self.add_user_to_list_and_write_to_file(user_data)
             register_message = {
-                f"User": "Registered successfully",
-                "your data": user_data_dict
+                f"User": f"{username} registered successfully",
             }
             return register_message
         else:
@@ -61,6 +59,12 @@ class User:
                 "Incorrect data": "Try again"
             }
             return error_message
+
+    def show_data(self):
+        show_data_message = {
+            "Your current data: ": f"username: {self.username}, password: {self.password} "
+        }
+        return show_data_message
 
     def __str__(self):
         return f"{self.username}, {self.password}, {self.logged_in}"
