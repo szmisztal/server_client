@@ -11,7 +11,9 @@ class CommunicationUtils:
             "info",
             "help",
             "stop",
-            "register"
+            "register",
+            "login",
+            "show data"
         ]
 
     def uptime(self):
@@ -29,20 +31,14 @@ class CommunicationUtils:
         }
         return server_info_dict
 
-    def help(self, user):
-        if user.logged_in == True:
-            commands_dict = {
-                "Uptime": "Shows the lifetime of the server",
-                "Info": "Shows the current version and server start date",
-                "Help": "Shows available commands",
-                "Stop": "Shuts down the server",
-            }
-        else:
-            commands_dict = {
-                "Register": "Sign up",
-                "Login": "Sign in",
-                "Stop": "Shuts down the server"
-            }
+    def help(self):
+        commands_dict = {
+            "Uptime": "Shows the lifetime of the server",
+            "Info": "Shows the current version and server start date",
+            "Help": "Shows available commands",
+            "Show data": "Shows your user data",
+            "Stop": "Shuts down the server",
+        }
         return commands_dict
 
     def unknown_command(self, client_request):
@@ -52,7 +48,7 @@ class CommunicationUtils:
             }
             return error_message
 
-    def response_to_client(self, client_request):
+    def response_to_client(self, client_request, user):
         if client_request == "stop":
             return self.server.stop()
         elif client_request == "uptime":
@@ -60,10 +56,15 @@ class CommunicationUtils:
         elif client_request == "info":
             return self.info()
         elif client_request == "help":
-            return self.help(user)
+            return self.help()
+        elif client_request == "show data":
+            return user.show_data()
         elif "Register" in client_request:
             user_data = client_request["Register"]
             return user.register_user(user_data)
+        elif "Login" in client_request:
+            user_data = client_request["Login"]
+            return user.login_user(user_data)
         else:
             return self.unknown_command(client_request)
 
