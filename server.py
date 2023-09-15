@@ -18,12 +18,13 @@ class Server:
         self.data_utils = DataUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "0.2.7"
+        self.server_version = "0.2.8"
         self.server_start_time = dt.now()
 
     def first_message_to_client(self):
         start_message = {
-            "Client status": "CONNECTED"
+            "Client status": "CONNECTED",
+            "Type 'help'": "to see available commands"
         }
         return start_message
 
@@ -31,7 +32,7 @@ class Server:
         deserialized_dict = self.data_utils.deserialize_json(client_request)
         print(deserialized_dict)
         if "Request" in deserialized_dict:
-            request = deserialized_dict.get("Request").lower()
+            request = deserialized_dict["Request"]
             return request
         else:
             user_data = deserialized_dict
@@ -54,6 +55,13 @@ class Server:
                     client_request = self.read_client_request(client_request_json)
                     response_to_client = self.communication_utils.response_to_client(client_request, user)
                     response_to_client_json = self.data_utils.serialize_to_json(response_to_client)
+                    if isinstance(response_to_client, dict):
+                        if "Sign in successfully" in response_to_client.values():
+                            user_data = client_request["Login"]
+                            user = User(**user_data)
+                            user.logged_in = True
+                        elif "You was successfully log out" in response_to_client.values():
+                            user = User("", "")
                     client_socket.sendall(response_to_client_json)
 
     def stop(self):
