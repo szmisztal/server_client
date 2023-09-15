@@ -1,7 +1,6 @@
 import socket as s
 from data_utils import DataUtils
 from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
-from users_utils import User
 
 
 class Client:
@@ -15,23 +14,8 @@ class Client:
         self.data_utils = DataUtils()
         self.is_running = True
 
-    def client_input(self, user):
-        if user.logged_in == True:
-            request = input("------------------------------------- \n"
-                            ">>> Choose command: uptime / info / help / show data / change data / send message / "
-                            "inbox / archived messages / logout / stop \n"
-                            "------------------------------------- \n"
-                            "REQUEST: ")
-        else:
-            request = input("------------------------------------- \n"
-                            ">>> Choose command: register / login / stop \n"
-                            "------------------------------------- \n"
-                            "REQUEST: ")
-        return request
-
-    def make_request_to_server(self, user):
-        client_input = self.client_input(user)
-        if client_input in ["register", "login"]:
+    def make_request_to_server(self, client_input):
+        if client_input in ["register", "login", "change data"]:
             user_data_input = self.user_data_input()
             if client_input == "register":
                 user_data = {
@@ -43,6 +27,14 @@ class Client:
                     "Login": user_data_input
                 }
                 return user_data
+            elif client_input == "change data":
+                user_data = {
+                    "New data": user_data_input
+                }
+                return user_data
+        elif client_input == "send message":
+            message_data = self.send_message_input()
+            return message_data
         else:
             request_to_server ={
                 "Request": client_input
@@ -58,28 +50,42 @@ class Client:
         }
         return user_data
 
+    def send_message_input(self):
+        recipient = input("Who do you want to send a message to ?: ")
+        message = input("Write a message: ")
+        message_data = {
+            "Recipient": recipient,
+            "Message": message
+        }
+        return message_data
+
     def read_server_response(self, dict_data):
-        deserialized_dict = self.data_utils.deserialize_json(dict_data)
-        for key, value in deserialized_dict.items():
-            print(f">>> {key}: {value}")
-        return deserialized_dict
+        deserialized_data = self.data_utils.deserialize_json(dict_data)
+        if isinstance(deserialized_data, dict):
+            for key, value in deserialized_data.items():
+                print(f">>> {key}: {value}")
+        elif isinstance(deserialized_data, list):
+            if deserialized_data == []:
+                print("You don`t have any messages to read")
+            else:
+                for message in deserialized_data:
+                    sender = message["Message from"]
+                    msg_text = message["Text"]
+                    print(f"Message from: {sender} \nText: {msg_text} \n"
+                          "--------------------------------------------------------")
 
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
             client_socket.connect((HOST, PORT))
-            user = User("", "")
             server_response = client_socket.recv(self.BUFFER)
             self.read_server_response(server_response)
             while self.is_running:
-                client_request = self.make_request_to_server(user)
+                client_input = input("REQUEST: ").lower()
+                client_request = self.make_request_to_server(client_input)
                 client_request_json = self.data_utils.serialize_to_json(client_request)
                 client_socket.sendall(client_request_json)
                 server_response = client_socket.recv(self.BUFFER)
-                deserialized_server_response = self.read_server_response(server_response)
-                if "Sign in successfully" in deserialized_server_response.values():
-                    user_data = client_request["Login"]
-                    user = User(**user_data)
-                    user.logged_in = True
+                self.read_server_response(server_response)
                 self.stop(server_response)
 
     def stop(self, dict_data):
