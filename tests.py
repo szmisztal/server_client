@@ -1,6 +1,6 @@
 import unittest
 import io
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, mock_open
 from datetime import datetime as dt
 from client import Client
 from server import Server
@@ -289,27 +289,57 @@ class TestCommunicationUtils(unittest.TestCase):
 class TestUser(unittest.TestCase):
     def setUp(self):
         self.user = User("test_username", "test_password")
+        self.test_user_data = {"username": f"{self.user.username}", "password": f"{self.user.password}"}
 
-    def test_register_user(self):
-        user_data = {"username": "new_username", "password": "new_password"}
+    @patch("builtins.open", new_callable = mock_open, read_data = "[]")
+    def test_register_user(self, mock_file):
+        user_data = {"username": "register_username", "password": "register_password"}
         result = self.user.register_user(user_data)
         self.assertIsInstance(result, dict)
-        self.assertIn("User", result)
-        self.assertEqual(result["User"], "new_username registered successfully")
+        self.assertEqual(result["User"], "register_username registered successfully")
+
+    def test_register_user_with_used_username(self):
+        user_data = {"username": "test_username", "password": "test_password"}
+        result = self.user.register_user(user_data)
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["Username"], "In use, choose another")
 
     def test_login_user(self):
         user_data = {"username": "test_username", "password": "test_password"}
         result = self.user.login_user(user_data)
         self.assertIsInstance(result, dict)
         self.assertIn("User 'test_username'", result)
-        self.assertEqual(result[f"User {user_data['username']}"], "Sign in successfully")
+        self.assertEqual(result["User 'test_username'"], "Sign in successfully")
 
-    def test_change_user_data(self):
+    def test_login_user_with_incorrect_data(self):
+        user_data = {"username": "test_password", "password": "test_username"}
+        result = self.user.login_user(user_data)
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["Incorrect data"], "Try again")
+
+    def test_show_data(self):
+        result = self.user.show_data()
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["Your current data: "], f"username: {self.user.username}, password: {self.user.password}")
+
+    def test_logout(self):
+        result = self.user.logout()
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["Logout"], "You was successfully log out")
+
+    @patch("builtins.open", new_callable = mock_open, read_data = "[]")
+    def test_change_user_data(self, mock_file):
         new_user_data = {"username": "new_username", "password": "new_password"}
         result = self.user.change_user_data(new_user_data)
         self.assertIsInstance(result, dict)
         self.assertIn("Success", result)
         self.assertEqual(result["Success"], "Your new data: username: new_username, password: new_password")
+
+    def test_change_data_with_incorrect_username(self):
+        new_user_data = {"username": "test_username", "password": "new_password"}
+        result = self.user.change_user_data(new_user_data)
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["Username"], "In use, choose another")
 
 
 if __name__ == "__main__":
