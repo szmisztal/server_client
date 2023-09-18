@@ -36,7 +36,7 @@ class User:
         if validated_username == True:
             self.add_user_to_list_and_write_to_file(user_data)
             register_message = {
-                f"User": f"{username} registered successfully",
+                "User": f"{username} registered successfully",
             }
             return register_message
         else:
@@ -62,7 +62,7 @@ class User:
 
     def show_data(self):
         show_data_message = {
-            "Your current data: ": f"username: {self.username}, password: {self.password} "
+            "Your current data: ": f"username: {self.username}, password: {self.password}"
         }
         return show_data_message
 
