@@ -70,8 +70,8 @@ class Client:
             else:
                 for message in deserialized_data:
                     sender = message["Message from"]
-                    msg_text = message["Text"]
-                    print(f"Message from: {sender} \nText: {msg_text} \n"
+                    message_text = message["Text"]
+                    print(f"Message from: {sender} \nText: {message_text} \n"
                           "--------------------------------------------------------")
 
     def start(self):
