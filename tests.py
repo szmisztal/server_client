@@ -290,6 +290,7 @@ class TestUser(unittest.TestCase):
     def setUp(self):
         self.user = User("test_username", "test_password")
         self.test_user_data = {"username": f"{self.user.username}", "password": f"{self.user.password}"}
+        self.data_utils = DataUtils()
 
     @patch("builtins.open", new_callable = mock_open, read_data = "[]")
     def test_register_user(self, mock_file):
@@ -340,6 +341,30 @@ class TestUser(unittest.TestCase):
         result = self.user.change_user_data(new_user_data)
         self.assertIsInstance(result, dict)
         self.assertEqual(result["Username"], "In use, choose another")
+
+    @patch("os.path.exists", return_value = False)
+    def test_show_new_messages(self, mock_file):
+        test_messages = [
+            {"Message from": "Sender_1", "Text": "Test_message_1"},
+            {"Message from": "Sender_2", "Text": "Test_message_2"}
+        ]
+        self.data_utils.write_to_json_file(f"{self.user.username}_new_messages.json", test_messages)
+        messages_to_read = self.user.show_new_messages()
+        self.assertEqual(messages_to_read, test_messages)
+
+    @patch("os.path.exists", return_value = False)
+    def test_show_archived_messages(self, mock_file):
+        test_archived_messages = [
+            {"Message from": "Sender_1", "Text": "Test_message_1"},
+            {"Message from": "Sender_2", "Text": "Test_message_2"}
+        ]
+        self.data_utils.write_to_json_file(f"{self.user.username}_archived_messages.json", test_archived_messages)
+        archived_messages = self.user.show_archived_messages()
+        self.assertEqual(archived_messages, test_archived_messages)
+
+    def test_str(self):
+        expected_str = f"Username: {self.user.username}, Password: {self.user.password}, Login status: {self.user.logged_in}, Admin role: {self.user.admin_role}"
+        self.assertEqual(str(self.user), expected_str)
 
 
 if __name__ == "__main__":
