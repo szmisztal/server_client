@@ -147,6 +147,6 @@ class User:
         return archived_messages
 
     def __str__(self):
-        return f"Username:{self.username}, Password: {self.password}, Login status: {self.logged_in}, Admin role: {self.admin_role}"
+        return f"Username: {self.username}, Password: {self.password}, Login status: {self.logged_in}, Admin role: {self.admin_role}"
 
 
