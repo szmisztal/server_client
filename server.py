@@ -42,7 +42,8 @@ class Server:
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
-            self.data_utils.create_table("users")
+            self.data_utils.create_user_table()
+            self.data_utils.create_message_table()
             client_socket, address = server_socket.accept()
             client_ip = address[0]
             client_port = address[1]
