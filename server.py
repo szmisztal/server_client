@@ -18,7 +18,7 @@ class Server:
         self.data_utils = DataUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "0.3.2"
+        self.server_version = "0.4.2"
         self.server_start_time = dt.now()
 
     def first_message_to_client(self):
