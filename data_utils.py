@@ -19,14 +19,21 @@ class DataUtils:
             database = "db"
         )
         cursor = self.connection.cursor()
-        create_table_query = f'''CREATE TABLE {name}
-                        (ID SERIAL PRIMARY KEY,
-                        USERNAME VARCHAR NOT NULL,
-                        PASSWORD VARCHAR NOT NULL,
-                        ADMIN_ROLE BOOLEAN NOT NULL DEFAULT FALSE)'''
-        cursor.execute(create_table_query)
-        self.connection.commit()
-        print("Table was created")
+        table_exists_query = f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{name}')"
+        cursor.execute(table_exists_query)
+        table_exists = cursor.fetchone()[0]
+
+        if not table_exists:
+            create_table_query = f'''CREATE TABLE {name}
+                            (ID SERIAL PRIMARY KEY,
+                            USERNAME VARCHAR NOT NULL,
+                            PASSWORD VARCHAR NOT NULL,
+                            ADMIN_ROLE BOOLEAN NOT NULL DEFAULT FALSE)'''
+            cursor.execute(create_table_query)
+            self.connection.commit()
+            print("Table was created")
+        else:
+            print(f"Table {name} already exists")
 
     def write_to_json_file(self, filename, data):
         with open(filename, "w") as file:
