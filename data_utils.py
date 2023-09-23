@@ -16,7 +16,7 @@ class DataUtils:
             password = password,
             host = "127.0.0.1",
             port = "5432",
-            database = "postgres_db"
+            database = "db"
         )
         cursor = self.connection.cursor()
         create_table_query = f'''CREATE TABLE {name}
