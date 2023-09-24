@@ -16,7 +16,8 @@ class CommunicationUtils:
             "send message",
             "mailbox",
             "archives",
-            "logout"
+            "logout",
+            "delete"
         ]
 
     def uptime(self):
@@ -46,6 +47,7 @@ class CommunicationUtils:
                 "Mailbox": "Read new messages",
                 "Archives": "Read archived messages",
                 "Logout": "Sign out the user",
+                "Delete": "Delete your data from database",
                 "Stop": "Shuts down the server",
             }
         else:
@@ -86,6 +88,9 @@ class CommunicationUtils:
                 return user.show_archived_messages()
             elif client_request == "logout":
                 return user.logout()
+            elif client_request == "delete":
+                user_confirmation = client_request["Answer"]
+                return user.delete_user(user_confirmation)
             elif client_request == "stop":
                 return self.server.stop()
             else:
