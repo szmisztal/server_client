@@ -59,6 +59,13 @@ class Client:
         }
         return message_data
 
+    def delete_user_input(self):
+        confirmation = input("Do you really want to delete your data from database ? YES/NO: ")
+        confirmation_data = {
+            "Answer": confirmation
+        }
+        return confirmation_data
+
     def read_server_response(self, dict_data):
         deserialized_data = self.data_utils.deserialize_json(dict_data)
         if isinstance(deserialized_data, dict):
@@ -93,8 +100,6 @@ class Client:
         if "Server status" in deserialized_dict and "Shutting down" in deserialized_dict["Server status"]:
             print("CLIENT CLOSED...")
             self.is_running = False
-        else:
-            pass
 
 
 if __name__ == "__main__":
