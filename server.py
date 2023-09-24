@@ -62,7 +62,8 @@ class Server:
                             user_data = client_request["Login"]
                             user = User(**user_data)
                             user.logged_in = True
-                        elif "You was successfully log out" in response_to_client.values():
+                        elif "You was successfully log out" in response_to_client.values() or \
+                                "You have been deleted from database" in response_to_client.values():
                             user = User("", "")
                     client_socket.sendall(response_to_client_json)
 
