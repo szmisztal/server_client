@@ -8,33 +8,13 @@ class User:
         self.admin_role = False
         self.logged_in = False
         self.data_utils = DataUtils()
-        self.users_file = "users_list.json"
-        self.users_list = self.data_utils.read_json_file(self.users_file) or []
-
-    def validate_username(self, username):
-        for u in self.users_list:
-            stored_username = u["username"]
-            if stored_username == username:
-                return False
-        return True
-
-    def validate_credentials(self, username, password):
-        for u in self.users_list:
-            stored_username = u["username"]
-            stored_password = u["password"]
-            if username == stored_username and password == stored_password:
-                return True
-        return False
-
-    def add_user_to_list_and_write_to_file(self, user_data):
-        self.users_list.append(user_data)
-        self.data_utils.write_to_json_file(self.users_file, self.users_list)
 
     def register_user(self, user_data):
         username = user_data["username"]
-        validated_username = self.validate_username(username)
+        password = user_data["password"]
+        validated_username = self.data_utils.validate_username(username)
         if validated_username == True:
-            self.add_user_to_list_and_write_to_file(user_data)
+            self.data_utils.register_user_to_db(username, password)
             register_message = {
                 "User": f"{username} registered successfully",
             }
@@ -48,7 +28,7 @@ class User:
     def login_user(self, user_data):
         username = user_data["username"]
         password = user_data["password"]
-        validated_data = self.validate_credentials(username, password)
+        validated_data = self.data_utils.validate_credentials(username, password)
         if validated_data == True:
             login_message = {
                 f"User '{username}'": "Sign in successfully"
@@ -72,12 +52,24 @@ class User:
         }
         return logout_message
 
+    def delete_user(self, user_confirmation):
+        if user_confirmation not in ["yes", "Yes"]:
+            not_deletion_message = {
+                "Message": "Your data will remain in the database"
+            }
+            return not_deletion_message
+        else:
+            deletion_message = {
+                "Success": "You have been deleted from database"
+            }
+            return deletion_message
+
     def change_user_data(self, new_user_data):
         new_username = new_user_data["username"]
         new_password = new_user_data["password"]
         new_messages = self.data_utils.read_json_file(f"{self.username}_new_messages.json") or []
         archived_messages = self.data_utils.read_json_file(f"{self.username}_archived_messages.json") or []
-        validated_username = self.validate_username(new_username)
+        validated_username = self.data_utils.validate_username(new_username)
         if validated_username == False:
             error_message = {
                 "Username": "In use, choose another"
