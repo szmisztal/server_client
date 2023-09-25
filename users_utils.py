@@ -40,12 +40,6 @@ class User:
             }
             return error_message
 
-    def show_data(self):
-        show_data_message = {
-            "Your current data: ": f"username: {self.username}, password: {self.password}"
-        }
-        return show_data_message
-
     def logout(self):
         logout_message = {
             "Logout": "You was successfully log out"
@@ -59,6 +53,7 @@ class User:
             }
             return not_deletion_message
         else:
+            self.data_utils.delete_user_from_db(self.username, self.password)
             deletion_message = {
                 "Success": "You have been deleted from database"
             }
@@ -67,8 +62,6 @@ class User:
     def change_user_data(self, new_user_data):
         new_username = new_user_data["username"]
         new_password = new_user_data["password"]
-        new_messages = self.data_utils.read_json_file(f"{self.username}_new_messages.json") or []
-        archived_messages = self.data_utils.read_json_file(f"{self.username}_archived_messages.json") or []
         validated_username = self.data_utils.validate_username(new_username)
         if validated_username == False:
             error_message = {
@@ -76,49 +69,36 @@ class User:
             }
             return error_message
         else:
-            for u in self.users_list:
-                if self.username == u["username"]:
-                    u["username"] = self.username = new_username
-                    u["password"] = self.password = new_password
-                    self.data_utils.write_to_json_file(self.users_file, self.users_list)
-                    self.data_utils.write_to_json_file(f"{self.username}_new_messages.json", new_messages)
-                    self.data_utils.write_to_json_file(f"{self.username}_archived_messages.json", archived_messages)
-                    change_data_message = {
-                        "Success": f"Your new data: username: {self.username}, password: {self.password}"
-                    }
-                    return change_data_message
+            self.data_utils.update_user_data(new_username, new_password, self.username, self.password)
+            change_data_message = {
+                "Success": f"Your new data: username: {new_username}, password: {new_password}"
+            }
+            return change_data_message
 
     def send_message(self, recipient_data, message_data):
         recipient = recipient_data
         message = message_data
-        validated_recipient = self.validate_username(recipient)
-        if validated_recipient == True:
+        validated_recipient = self.data_utils.validate_username(recipient)
+        if validated_recipient == False:
             error_message = {
                 "Recipient": "User not found, try again"
             }
             return error_message
         else:
-            recipient_messages = self.data_utils.read_json_file(f"{recipient}_new_messages.json") or []
+            recipient_messages_list = self.data_utils.user_messages_list(recipient, False)
             if len(message) > 255:
                 error_message = {
                     "Failed": "Max message length = 255"
                 }
                 return error_message
-            elif len(recipient_messages) >= 5:
+            elif len(recipient_messages_list) >= 5:
                 if self.admin_role == False:
                     error_message = {
                         "Failed": "Recipient`s mailbox is full"
                     }
                     return error_message
-                else:
-                    pass
             else:
-                message_data_dict = {
-                    "Message from": self.username,
-                    "Text": message
-                }
-                recipient_messages.append(message_data_dict)
-                self.data_utils.write_to_json_file(f"{recipient}_new_messages.json", recipient_messages)
+                self.data_utils.save_message_to_db(self.username, message, recipient)
                 send_message_success = {
                     "Message": "Send successfully"
                 }
@@ -135,7 +115,7 @@ class User:
         return messages_to_read
 
     def show_archived_messages(self):
-        archived_messages = self.data_utils.read_json_file(f"{self.username}_archived_messages.json")
+        archived_messages = self.data_utils.user_messages_list(self.username, True)
         return archived_messages
 
     def __str__(self):
