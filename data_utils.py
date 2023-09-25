@@ -81,7 +81,8 @@ class DataUtils:
         connection = self.connection_to_db()
         try:
             cursor = connection.cursor()
-            users_query = "SELECT username FROM users WHERE username = %s"
+            users_query = "SELECT username FROM users " \
+                          "WHERE username = %s"
             cursor.execute(users_query, (username, ))
             existing_username = cursor.fetchone()
             if existing_username is not None:
@@ -98,7 +99,8 @@ class DataUtils:
         connection = self.connection_to_db()
         try:
             cursor = connection.cursor()
-            users_query = "SELECT username, password FROM users WHERE username = %s AND password = %s"
+            users_query = "SELECT username, password FROM users " \
+                          "WHERE username = %s AND password = %s"
             cursor.execute(users_query, (username, password))
             credentials = cursor.fetchone()
             if credentials is not None:
@@ -115,7 +117,8 @@ class DataUtils:
         connection = self.connection_to_db()
         try:
             cursor = connection.cursor()
-            insert_user_query = "INSERT INTO users (username, password) VALUES (%s, %s)"
+            insert_user_query = "INSERT INTO users (username, password) " \
+                                "VALUES (%s, %s)"
             cursor.execute(insert_user_query, (username, password))
             connection.commit()
         except psycopg2.Error as e:
@@ -128,7 +131,8 @@ class DataUtils:
         connection = self.connection_to_db()
         try:
             cursor = connection.cursor()
-            delete_user_query = "DELETE FROM users WHERE username = %s AND password = %s"
+            delete_user_query = "DELETE FROM users " \
+                                "WHERE username = %s AND password = %s"
             cursor.execute(delete_user_query, (username, password))
             connection.commit()
         except psycopg2.Error as e:
@@ -141,7 +145,9 @@ class DataUtils:
         connection = self.connection_to_db()
         try:
             cursor = connection.cursor()
-            update_data_query = "UPDATE users SET username = %s, password = %s WHERE username = %s AND password = %s"
+            update_data_query = "UPDATE users " \
+                                "SET username = %s, password = %s " \
+                                "WHERE username = %s AND password = %s"
             cursor.execute(update_data_query, (new_username, new_password, username, password))
             connection.commit()
         except psycopg2.Error as e:
@@ -154,9 +160,10 @@ class DataUtils:
         connection = self.connection_to_db()
         try:
             cursor = connection.cursor()
-            messages_list_query = "SELECT sender, message_date, message_text FROM messages " \
-                                  "WHERE user_id = (SELECT user_id FROM users WHERE username = %s)" \
-                                  "AND archived = %s ORDER BY message_date"
+            messages_list_query = "SELECT sender, message_text FROM messages " \
+                                  "WHERE user_id = (SELECT user_id FROM users WHERE username = %s) " \
+                                  "AND archived = %s " \
+                                  "ORDER BY message_date"
             cursor.execute(messages_list_query, (username, boolean_condition))
             messages_list = cursor.fetchall()
             return messages_list
@@ -173,9 +180,26 @@ class DataUtils:
             cursor = connection.cursor()
             cursor.execute("SELECT user_id FROM users WHERE username = %s", (recipient, ))
             recipient_id = cursor.fetchone()
-            message_save_query = "INSERT INTO messages (user_id, sender, message_text) VALUES (%s, %s, %s)"
+            message_save_query = "INSERT INTO messages (user_id, sender, message_text) " \
+                                 "VALUES (%s, %s, %s)"
             cursor.execute(message_save_query, (recipient_id[0], sender, message))
-            cursor.commit()
+            connection.commit()
+        except psycopg2.Error as e:
+            print(f"Error: {e}")
+            connection.rollback()
+        finally:
+            connection.close()
+
+    def archive_messages(self, username):
+        connection = self.connection_to_db()
+        try:
+            cursor = connection.cursor()
+            archive_messages_query = "UPDATE messages " \
+                                     "SET archived = True " \
+                                     "WHERE user_id = (SELECT user_id FROM users WHERE username = %s)" \
+                                     "AND archived = False"
+            cursor.execute(archive_messages_query, (username, ))
+            connection.commit()
         except psycopg2.Error as e:
             print(f"Error: {e}")
             connection.rollback()
