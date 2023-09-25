@@ -49,6 +49,12 @@ class TestClient(unittest.TestCase):
         self.assertIsInstance(result, dict)
         self.assertEqual(result, {"Recipient": "test_recipient", "Message": "test_message"})
 
+    @patch("builtins.input", side_effect = ["yes"])
+    def test_delete_user_input(self, mock_input):
+        result = self.client.delete_user_input()
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result, {"Delete confirmation": "yes"})
+
     @patch("sys.stdout", new_callable = io.StringIO)
     def test_read_server_response_dict(self, mock_stdout):
         data = {"key1": "value1", "key2": "value2"}
@@ -68,8 +74,7 @@ class TestClient(unittest.TestCase):
 
     @patch("sys.stdout", new_callable = io.StringIO)
     def test_read_server_response_message_list(self, mock_stdout):
-        data = [{"Message from": "Sender1", "Text": "Test_text_1"},
-                {"Message from": "Sender2", "Text": "Test_text_2"}]
+        data = [("Sender1", "Test_text_1"), ("Sender2", "Test_text_2")]
         json_data = self.client.data_utils.serialize_to_json(data)
         self.client.read_server_response(json_data)
         output = mock_stdout.getvalue()
@@ -160,12 +165,12 @@ class TestCommunicationUtils(unittest.TestCase):
         self.assertIn("Uptime", result)
         self.assertIn("Info", result)
         self.assertIn("Help", result)
-        self.assertIn("Show data", result)
         self.assertIn("Change data", result)
         self.assertIn("Send message", result)
         self.assertIn("Mailbox", result)
         self.assertIn("Archives", result)
         self.assertIn("Logout", result)
+        self.assertIn("Delete", result)
         self.assertIn("Stop", result)
 
     def test_help_not_logged_in(self):
@@ -211,12 +216,12 @@ class TestCommunicationUtils(unittest.TestCase):
         self.assertIn("Uptime", result)
         self.assertIn("Info", result)
         self.assertIn("Help", result)
-        self.assertIn("Show data", result)
         self.assertIn("Change data", result)
         self.assertIn("Send message", result)
         self.assertIn("Mailbox", result)
         self.assertIn("Archives", result)
         self.assertIn("Logout", result)
+        self.assertIn("Delete", result)
         self.assertIn("Stop", result)
 
     def test_response_to_client_help_not_logged_in(self):
@@ -226,12 +231,6 @@ class TestCommunicationUtils(unittest.TestCase):
         self.assertIn("Register", result)
         self.assertIn("Login", result)
         self.assertIn("Stop", result)
-
-    def test_response_to_client_show_data(self):
-        self.user.show_data.return_value = {"User data": "test_username: test_password"}
-        result = self.communication_utils.response_to_client("show data", self.user)
-        self.assertIsInstance(result, dict)
-        self.assertIn("User data", result)
 
     def test_response_to_client_change_user_data(self):
         self.user.change_user_data.return_value = {"Success": f"Your new data: username: {self.user.username}, password: {self.user.password}"}
@@ -265,6 +264,13 @@ class TestCommunicationUtils(unittest.TestCase):
         self.assertIsInstance(result, dict)
         self.assertIn("Logout", result)
 
+    def test_response_to_client_delete(self):
+        self.user.delete_user.return_value = {"Delete": "You have been deleted from database"}
+        client_request = {"Delete confirmation": "Yes"}
+        result = self.communication_utils.response_to_client(client_request, self.user)
+        self.assertIsInstance(result, dict)
+        self.assertIn("Delete", result)
+
     def test_response_to_client_unknown_command(self):
         client_request = "unknown_command"
         result = self.communication_utils.response_to_client(client_request, self.user)
@@ -273,7 +279,7 @@ class TestCommunicationUtils(unittest.TestCase):
 
     def test_response_to_client_not_logged_in(self):
         self.user.logged_in = False
-        result = self.communication_utils.response_to_client("show data", self.user)
+        result = self.communication_utils.response_to_client("logout", self.user)
         self.assertIsInstance(result, dict)
         self.assertIn("Error", result)
         self.assertIn("You have to sign in first to see available commands", result["Error"])
@@ -317,11 +323,6 @@ class TestUser(unittest.TestCase):
         result = self.user.login_user(user_data)
         self.assertIsInstance(result, dict)
         self.assertEqual(result["Incorrect data"], "Try again")
-
-    def test_show_data(self):
-        result = self.user.show_data()
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result["Your current data: "], f"username: {self.user.username}, password: {self.user.password}")
 
     def test_logout(self):
         result = self.user.logout()
