@@ -11,7 +11,6 @@ class CommunicationUtils:
             "stop",
             "register",
             "login",
-            "show data",
             "change data",
             "send message",
             "mailbox",
@@ -41,7 +40,6 @@ class CommunicationUtils:
                 "Uptime": "Shows the lifetime of the server",
                 "Info": "Shows the current version and server start date",
                 "Help": "Shows available commands",
-                "Show data": "Shows your user data",
                 "Change data": "Change your current user data",
                 "Send message": "Send message to another user",
                 "Mailbox": "Read new messages",
@@ -73,8 +71,6 @@ class CommunicationUtils:
                 return self.info()
             elif client_request == "help":
                 return self.help(user)
-            elif client_request == "show data":
-                return user.show_data()
             elif "New data" in client_request:
                 user_data = client_request["New data"]
                 return user.change_user_data(user_data)
@@ -88,8 +84,8 @@ class CommunicationUtils:
                 return user.show_archived_messages()
             elif client_request == "logout":
                 return user.logout()
-            elif client_request == "delete":
-                user_confirmation = client_request["Answer"]
+            elif "Delete confirmation" in client_request:
+                user_confirmation = client_request["Delete confirmation"]
                 return user.delete_user(user_confirmation)
             elif client_request == "stop":
                 return self.server.stop()
