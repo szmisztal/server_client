@@ -64,7 +64,7 @@ class DataUtils:
                                     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
                                     sender VARCHAR NOT NULL,
                                     message_date DATE NOT NULL DEFAULT CURRENT_DATE,
-                                    text VARCHAR(255) NOT NULL,
+                                    message_text VARCHAR(255) NOT NULL,
                                     archived BOOLEAN NOT NULL DEFAULT FALSE
                                     )'''
                 cursor.execute(create_table_query)
@@ -115,11 +115,70 @@ class DataUtils:
         connection = self.connection_to_db()
         try:
             cursor = connection.cursor()
-            insert_user_to_db_query = f"INSERT INTO users (username, password) VALUES (%s, %s)"
-            cursor.execute(insert_user_to_db_query, (username, password))
+            insert_user_query = "INSERT INTO users (username, password) VALUES (%s, %s)"
+            cursor.execute(insert_user_query, (username, password))
             connection.commit()
         except psycopg2.Error as e:
             print(f"Error: {e}")
+            connection.rollback()
+        finally:
+            connection.close()
+
+    def delete_user_from_db(self, username, password):
+        connection = self.connection_to_db()
+        try:
+            cursor = connection.cursor()
+            delete_user_query = "DELETE FROM users WHERE username = %s AND password = %s"
+            cursor.execute(delete_user_query, (username, password))
+            connection.commit()
+        except psycopg2.Error as e:
+            print(f"Error: {e}")
+            connection.rollback()
+        finally:
+            connection.close()
+
+    def update_user_data(self, new_username, new_password, username, password):
+        connection = self.connection_to_db()
+        try:
+            cursor = connection.cursor()
+            update_data_query = "UPDATE users SET username = %s, password = %s WHERE username = %s AND password = %s"
+            cursor.execute(update_data_query, (new_username, new_password, username, password))
+            connection.commit()
+        except psycopg2.Error as e:
+            print(f"Error: {e}")
+            connection.rollback()
+        finally:
+            connection.close()
+
+    def user_messages_list(self, username, boolean_condition):
+        connection = self.connection_to_db()
+        try:
+            cursor = connection.cursor()
+            messages_list_query = "SELECT sender, message_date, message_text FROM messages " \
+                                  "WHERE user_id = (SELECT user_id FROM users WHERE username = %s)" \
+                                  "AND archived = %s ORDER BY message_date"
+            cursor.execute(messages_list_query, (username, boolean_condition))
+            messages_list = cursor.fetchall()
+            return messages_list
+        except psycopg2.Error as e:
+            print(f"Error: {e}")
+            messages_list = []
+            return messages_list
+        finally:
+            connection.close()
+
+    def save_message_to_db(self, sender, message, recipient):
+        connection = self.connection_to_db()
+        try:
+            cursor = connection.cursor()
+            cursor.execute("SELECT user_id FROM users WHERE username = %s", (recipient, ))
+            recipient_id = cursor.fetchone()
+            message_save_query = "INSERT INTO messages (user_id, sender, message_text) VALUES (%s, %s, %s)"
+            cursor.execute(message_save_query, (recipient_id[0], sender, message))
+            cursor.commit()
+        except psycopg2.Error as e:
+            print(f"Error: {e}")
+            connection.rollback()
         finally:
             connection.close()
 
