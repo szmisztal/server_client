@@ -49,13 +49,13 @@ class User:
     def delete_user(self, user_confirmation):
         if user_confirmation not in ["yes", "Yes"]:
             not_deletion_message = {
-                "Message": "Your data will remain in the database"
+                "Confirmation failed": "Your data will remain in the database"
             }
             return not_deletion_message
         else:
             self.data_utils.delete_user_from_db(self.username, self.password)
             deletion_message = {
-                "Success": "You have been deleted from database"
+                "Delete": "You have been deleted from database"
             }
             return deletion_message
 
@@ -79,7 +79,7 @@ class User:
         recipient = recipient_data
         message = message_data
         validated_recipient = self.data_utils.validate_username(recipient)
-        if validated_recipient == False:
+        if validated_recipient == True:
             error_message = {
                 "Recipient": "User not found, try again"
             }
@@ -105,14 +105,9 @@ class User:
                 return send_message_success
 
     def show_new_messages(self):
-        new_messages = self.data_utils.read_json_file(f"{self.username}_new_messages.json") or []
-        messages_to_read = new_messages.copy()
-        archived_messages = self.data_utils.read_json_file(f"{self.username}_archived_messages.json")
-        archived_messages.extend(new_messages)
-        new_messages = []
-        self.data_utils.write_to_json_file(f"{self.username}_new_messages.json", new_messages)
-        self.data_utils.write_to_json_file(f"{self.username}_archived_messages.json", archived_messages)
-        return messages_to_read
+        user_messages_list = self.data_utils.user_messages_list(self.username, False)
+        self.data_utils.archive_messages(self.username)
+        return user_messages_list
 
     def show_archived_messages(self):
         archived_messages = self.data_utils.user_messages_list(self.username, True)
