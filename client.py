@@ -35,6 +35,9 @@ class Client:
         elif client_input == "send message":
             message_data = self.send_message_input()
             return message_data
+        elif client_input == "delete":
+            delete_input = self.delete_user_input()
+            return delete_input
         else:
             request_to_server ={
                 "Request": client_input
@@ -62,7 +65,7 @@ class Client:
     def delete_user_input(self):
         confirmation = input("Do you really want to delete your data from database ? YES/NO: ")
         confirmation_data = {
-            "Answer": confirmation
+            "Delete confirmation": confirmation
         }
         return confirmation_data
 
