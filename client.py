@@ -79,8 +79,8 @@ class Client:
                 print("You don`t have any messages to read")
             else:
                 for message in deserialized_data:
-                    sender = message["Message from"]
-                    message_text = message["Text"]
+                    sender = message[0]
+                    message_text = message[1]
                     print(f"Message from: {sender} \nText: {message_text} \n"
                           "--------------------------------------------------------")
 
