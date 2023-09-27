@@ -1,12 +1,15 @@
 import unittest
 import io
-from unittest.mock import Mock, patch, mock_open
+import psycopg2
+import os
+from unittest.mock import Mock, patch
 from datetime import datetime as dt
 from client import Client
 from server import Server
 from data_utils import DataUtils
 from communication_utils import CommunicationUtils
 from users_utils import User
+from secrets import password
 
 
 class TestClient(unittest.TestCase):
@@ -124,6 +127,16 @@ class TestServer(unittest.TestCase):
 class TestDataUtils(unittest.TestCase):
     def setUp(self):
         self.data_utils = DataUtils()
+        self.connection = psycopg2.connect(
+            user = "postgres",
+            password = password,
+            host = "127.0.0.1",
+            port = "5432",
+            database = "server_client_db"
+        )
+
+    def tearDown(self):
+        self.connection.close()
 
     def test_serialize_to_json(self):
         dict_data = {"key1": "value1", "key2": "value2"}
@@ -136,6 +149,39 @@ class TestDataUtils(unittest.TestCase):
         self.assertIsInstance(dict_data, dict)
         self.assertEqual(dict_data, {"key1": "value1", "key2": "value2"})
 
+    def test_register_user_to_db_and_update_user_data_and_delete_user_from_db_and_all_validate_methods(self):
+        username = "user_test"
+        password = "password_password"
+        new_username = "new_username"
+        new_password = "new_password"
+        self.assertTrue(self.data_utils.validate_username(username))
+        self.data_utils.register_user_to_db(username, password)
+        self.assertFalse(self.data_utils.validate_username(username))
+        self.assertTrue(self.data_utils.validate_credentials(username, password))
+        self.assertFalse(self.data_utils.validate_credentials(username, new_password))
+        self.data_utils.update_user_data(new_username, new_password, username, password)
+        self.assertTrue(self.data_utils.validate_credentials(new_username, new_password))
+        self.assertFalse(self.data_utils.validate_credentials(new_username, password))
+        self.assertFalse(self.data_utils.validate_username(new_username))
+        self.data_utils.delete_user_from_db(new_username, new_password)
+        self.assertTrue(self.data_utils.validate_username(username))
+
+    def test_user_messages_list_with_boolean_condition__and_archive_messages_and_save_message_to_db_method(self):
+        sender = "szymon"
+        message = "test_message"
+        message_2 = "test_message_2"
+        username = "test_user"
+        boolean_condition = False
+        self.assertFalse(self.data_utils.validate_username(username))
+        self.assertFalse(self.data_utils.validate_username(sender))
+        self.data_utils.save_message_to_db(sender, message, username)
+        self.data_utils.save_message_to_db(sender, message_2, username)
+        messages_list = self.data_utils.user_messages_list(username, boolean_condition)
+        self.assertTrue(len(messages_list) > 0)
+        self.data_utils.archive_messages(username)
+        messages_list_2 = self.data_utils.user_messages_list(username, True)
+        self.assertTrue(len(messages_list_2) >= 2)
+
     def test_write_and_read_to_json_file(self):
         filename = "test_file.json"
         data = {"key1": "value1", "key2": "value2"}
@@ -143,6 +189,9 @@ class TestDataUtils(unittest.TestCase):
         read_data = self.data_utils.read_json_file(filename)
         self.assertIsInstance(read_data, dict)
         self.assertEqual(read_data, data)
+        if os.path.exists(filename):
+            os.remove(filename)
+        self.assertFalse(os.path.exists(filename))
 
 
 class TestCommunicationUtils(unittest.TestCase):
@@ -295,28 +344,29 @@ class TestCommunicationUtils(unittest.TestCase):
 class TestUser(unittest.TestCase):
     def setUp(self):
         self.user = User("test_username", "test_password")
-        self.test_user_data = {"username": f"{self.user.username}", "password": f"{self.user.password}"}
         self.data_utils = DataUtils()
 
-    @patch("builtins.open", new_callable = mock_open, read_data = "[]")
-    def test_register_user(self, mock_file):
-        user_data = {"username": "register_username", "password": "register_password"}
+    def test_register_user_success(self):
+        user_data = {"username": self.user.username, "password": self.user.password}
         result = self.user.register_user(user_data)
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result["User"], "register_username registered successfully")
+        self.assertEqual(result, {"User": "test_username registered successfully"})
+        self.data_utils.delete_user_from_db(self.user.username, self.user.password)
 
     def test_register_user_with_used_username(self):
-        user_data = {"username": "test_username", "password": "test_password"}
+        user_data = {"username": "szymon", "password": self.user.password}
         result = self.user.register_user(user_data)
         self.assertIsInstance(result, dict)
         self.assertEqual(result["Username"], "In use, choose another")
+        self.data_utils.delete_user_from_db(self.user.username, self.user.password)
 
     def test_login_user(self):
-        user_data = {"username": "test_username", "password": "test_password"}
-        result = self.user.login_user(user_data)
-        self.assertIsInstance(result, dict)
-        self.assertIn("User 'test_username'", result)
-        self.assertEqual(result["User 'test_username'"], "Sign in successfully")
+        user_data = {"username": self.user.username, "password": self.user.password}
+        self.user.register_user(user_data)
+        log_result = self.user.login_user(user_data)
+        self.assertIsInstance(log_result, dict)
+        self.assertIn("User 'test_username'", log_result)
+        self.assertEqual(log_result["User 'test_username'"], "Sign in successfully")
+        self.data_utils.delete_user_from_db(self.user.username, self.user.password)
 
     def test_login_user_with_incorrect_data(self):
         user_data = {"username": "test_password", "password": "test_username"}
@@ -329,39 +379,64 @@ class TestUser(unittest.TestCase):
         self.assertIsInstance(result, dict)
         self.assertEqual(result["Logout"], "You was successfully log out")
 
-    @patch("builtins.open", new_callable = mock_open, read_data = "[]")
-    def test_change_user_data(self, mock_file):
+    def test_delete_user_success(self):
+        user_confirmation = "yes"
+        result = self.user.delete_user(user_confirmation)
+        self.assertEqual(result, {"Delete": "You have been deleted from database"})
+
+    def test_delete_user_failure(self):
+        user_confirmation = "no"
+        result = self.user.delete_user(user_confirmation)
+        self.assertEqual(result, {"Confirmation failed": "Your data will remain in the database"})
+
+    def test_change_user_data_success(self):
         new_user_data = {"username": "new_username", "password": "new_password"}
         result = self.user.change_user_data(new_user_data)
-        self.assertIsInstance(result, dict)
-        self.assertIn("Success", result)
-        self.assertEqual(result["Success"], "Your new data: username: new_username, password: new_password")
+        expected_message = {"Success": f"Your new data: username: new_username, password: new_password"}
+        self.assertEqual(result, expected_message)
+        self.data_utils.delete_user_from_db(self.user.username, self.user.password)
 
-    def test_change_data_with_incorrect_username(self):
-        new_user_data = {"username": "test_username", "password": "new_password"}
+    def test_change_user_data_failure(self):
+        new_user_data = {"username": "szymon", "password": "new_password"}
         result = self.user.change_user_data(new_user_data)
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result["Username"], "In use, choose another")
+        self.assertEqual(result, {"Username": "In use, choose another"})
 
-    @patch("os.path.exists", return_value = False)
-    def test_show_new_messages(self, mock_file):
-        test_messages = [
-            {"Message from": "Sender_1", "Text": "Test_message_1"},
-            {"Message from": "Sender_2", "Text": "Test_message_2"}
-        ]
-        self.data_utils.write_to_json_file(f"{self.user.username}_new_messages.json", test_messages)
-        messages_to_read = self.user.show_new_messages()
-        self.assertEqual(messages_to_read, test_messages)
+    def test_send_message_user_not_found(self):
+        recipient_data = "test_recipient"
+        message_data = "Test message"
+        result = self.user.send_message(recipient_data, message_data)
+        self.assertEqual(result, {"Recipient": "User not found, try again"})
 
-    @patch("os.path.exists", return_value = False)
-    def test_show_archived_messages(self, mock_file):
-        test_archived_messages = [
-            {"Message from": "Sender_1", "Text": "Test_message_1"},
-            {"Message from": "Sender_2", "Text": "Test_message_2"}
-        ]
-        self.data_utils.write_to_json_file(f"{self.user.username}_archived_messages.json", test_archived_messages)
-        archived_messages = self.user.show_archived_messages()
-        self.assertEqual(archived_messages, test_archived_messages)
+    def test_send_message_max_length_exceeded(self):
+        recipient_data = "szymon"
+        message_data = "A" * 256
+        result = self.user.send_message(recipient_data, message_data)
+        self.assertEqual(result, {"Failed": "Max message length = 255"})
+
+    def test_send_message_mailbox_full(self):
+        recipient_data = "test_user"
+        message_1 = "Test message"
+        message_2 = "Test message"
+        message_3 = "Test message"
+        message_4 = "Test message"
+        message_5 = "Test message"
+        message_6 = "Test message"
+        self.user.send_message(recipient_data, message_1)
+        self.user.send_message(recipient_data, message_2)
+        self.user.send_message(recipient_data, message_3)
+        self.user.send_message(recipient_data, message_4)
+        self.user.send_message(recipient_data, message_5)
+        result = self.user.send_message(recipient_data, message_6)
+        self.assertEqual(result, {"Failed": "Recipient`s mailbox is full"})
+
+    def test_send_message_success(self):
+        user_data = {"username": "test_user_2", "password": "test_user_password_2"}
+        self.user.register_user(user_data)
+        recipient_data = "test_user_2"
+        message_data = "Test message"
+        result = self.user.send_message(recipient_data, message_data)
+        self.assertEqual(result, {"Message": "Send successfully"})
+        self.data_utils.delete_user_from_db("test_user_2", "test_user_password_2")
 
     def test_str(self):
         expected_str = f"Username: {self.user.username}, Password: {self.user.password}, Login status: {self.user.logged_in}, Admin role: {self.user.admin_role}"
