@@ -1,4 +1,5 @@
 import json
+import time
 import psycopg2
 from variables import encode_format
 from secrets import password
@@ -217,3 +218,31 @@ class DataUtils:
         except (FileNotFoundError, json.JSONDecodeError):
             users_data = []
         return users_data
+
+    def test_db_connection_with_close_conn_after_every_query(self):
+        total_time = 0
+        time_1 = time.time()
+        for _ in range(100):
+            connection = self.connection_to_db()
+            cursor = connection.cursor()
+            query = "SELECT * FROM users"
+            cursor.execute(query)
+            connection.close()
+        time_2 = time.time()
+        elapsed_time = time_2 - time_1
+        total_time += elapsed_time
+        print(f"Test time (close conn after every query): {total_time}")
+
+    def test_db_connection_with_close_conn_after_all_query(self):
+        total_time = 0
+        time_1 = time.time()
+        connection = self.connection_to_db()
+        cursor = connection.cursor()
+        query = "SELECT * FROM users"
+        for _ in range(100):
+            cursor.execute(query)
+        connection.close()
+        time_2 = time.time()
+        elapsed_time = time_2 - time_1
+        total_time += elapsed_time
+        print(f"Test time (close conn after all query): {total_time}")
