@@ -219,10 +219,10 @@ class DataUtils:
             users_data = []
         return users_data
 
-    def test_db_connection_with_close_conn_after_every_query(self):
+    def test_db_connection_with_close_conn_after_every_query(self, loop_iteration):
         total_time = 0
         time_1 = time.time()
-        for _ in range(100):
+        for _ in range(loop_iteration):
             connection = self.connection_to_db()
             cursor = connection.cursor()
             query = "SELECT * FROM users"
@@ -233,13 +233,13 @@ class DataUtils:
         total_time += elapsed_time
         print(f"Test time (close conn after every query): {total_time}")
 
-    def test_db_connection_with_close_conn_after_all_query(self):
+    def test_db_connection_with_close_conn_after_all_query(self, loop_iteration):
         total_time = 0
         time_1 = time.time()
         connection = self.connection_to_db()
         cursor = connection.cursor()
         query = "SELECT * FROM users"
-        for _ in range(100):
+        for _ in range(loop_iteration):
             cursor.execute(query)
         connection.close()
         time_2 = time.time()
