@@ -5,7 +5,7 @@ This is an example of a simple server-client communication application written i
 ## Requirements
 
 1. **Python 3.x**
-2. **psycopg2** library (for PostgreSQL database handling)
+2. **sqlite3** library (for SQLite database handling)
 
 ## How to Use
 
@@ -29,4 +29,4 @@ This is an example of a simple server-client communication application written i
 - **Help**: Get a list of available commands.
 
 ## Database
-The application uses a PostgreSQL database to store user information and messages. The database tables are created automatically when you run the server for the first time.
+The application uses a SQLite database to store user information and messages. The database tables are created automatically when you run the server for the first time.
