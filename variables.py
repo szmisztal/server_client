@@ -7,6 +7,7 @@ BUFFER = 1024
 encode_format = "UTF-8"
 INTERNET_ADDRESS_FAMILY = s.AF_INET
 SOCKET_TYPE = s.SOCK_STREAM
+db_file_name = "server-client_db.db"
 
 
 
