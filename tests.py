@@ -1,6 +1,5 @@
 import unittest
 import io
-import psycopg2
 import os
 from unittest.mock import Mock, patch
 from datetime import datetime as dt
@@ -9,7 +8,7 @@ from server import Server
 from data_utils import DataUtils
 from communication_utils import CommunicationUtils
 from users_utils import User
-from secrets import password
+from variables import db_file_name
 
 
 class TestClient(unittest.TestCase):
@@ -127,13 +126,7 @@ class TestServer(unittest.TestCase):
 class TestDataUtils(unittest.TestCase):
     def setUp(self):
         self.data_utils = DataUtils()
-        self.connection = psycopg2.connect(
-            user = "postgres",
-            password = password,
-            host = "127.0.0.1",
-            port = "5432",
-            database = "server_client_db"
-        )
+        self.connection = self.data_utils.create_connection(db_file_name)
 
     def tearDown(self):
         self.connection.close()
