@@ -1,8 +1,8 @@
 import socket as s
 from datetime import datetime as dt
 from communication_utils import CommunicationUtils
-from data_utils import DataUtils
-from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from data_utils import DataUtils, SQLite, PostgreSQL
+from variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, database
 from users_utils import User
 
 
@@ -16,9 +16,11 @@ class Server:
         self.encode_format = encode_format
         self.communication_utils = CommunicationUtils(self)
         self.data_utils = DataUtils()
+        self.sqlite_utils = SQLite(database)
+        self.postgresql_utils = PostgreSQL()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "0.6.0"
+        self.server_version = "1.0.0"
         self.server_start_time = dt.now()
 
     def first_message_to_client(self):
@@ -41,8 +43,8 @@ class Server:
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             server_socket.bind((self.HOST, self.PORT))
-            self.data_utils.create_user_table()
-            self.data_utils.create_message_table()
+            self.sqlite_utils.create_user_table()
+            self.sqlite_utils.create_message_table()
             server_socket.listen()
             client_socket, address = server_socket.accept()
             client_ip = address[0]
