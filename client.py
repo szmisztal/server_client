@@ -63,7 +63,7 @@ class Client:
         return message_data
 
     def delete_user_input(self):
-        confirmation = input("Do you really want to delete your data from database ? YES/NO: ")
+        confirmation = input("Do you really want to delete your data from database ? YES/NO: ").lower()
         confirmation_data = {
             "Delete confirmation": confirmation
         }
