@@ -6,6 +6,8 @@ This is an example of a simple server-client communication application written i
 
 1. **Python 3.x**
 2. **sqlite3** library (for SQLite database handling)
+3. **psycopg2** library (for PostgreSQL database handling)
+4. **bcrypt** library (for hashing users passwords)
 
 ## How to Use
 
@@ -29,4 +31,4 @@ This is an example of a simple server-client communication application written i
 - **Help**: Get a list of available commands.
 
 ## Database
-The application uses a SQLite database to store user information and messages. The database tables are created automatically when you run the server for the first time.
+The application uses a SQLite (or PostgreSQL - I wrote class methods for postgreSQL too) database to store user information and messages. The database tables are created automatically when you run the server for the first time.
