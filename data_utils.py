@@ -4,7 +4,6 @@ import psycopg2
 import sqlite3
 from sqlite3 import Error
 from variables import encode_format
-from secrets import password
 
 
 class DataUtils:
@@ -42,6 +41,8 @@ class SQLite:
     def __init__(self, db_file):
         self.data_utils = DataUtils()
         self.db_file = db_file
+        self.create_user_table()
+        self.create_message_table()
 
     def create_connection(self):
         try:
@@ -170,15 +171,41 @@ class SQLite:
 
 
 class PostgreSQL:
+    def __init__(self, user, password, host, port, database):
+        self.user = user
+        self.password = password
+        self.host = host
+        self.port = port
+        self.database = database
+        self.data_utils = DataUtils()
+        self.create_user_table()
+        self.create_message_table()
+
     def connection_to_db(self):
         connection = psycopg2.connect(
-            user = "postgres",
-            password = password,
-            host = "127.0.0.1",
-            port = "5432",
-            database = "server_client_db"
+            user = self.user,
+            password = self.password,
+            host = self.host,
+            port = self.port,
+            database = self.database
         )
         return connection
+
+    def execute_sql_query(self, query, *args, fetch_option = None):
+        connection = self.connection_to_db()
+        try:
+            cursor = connection.cursor()
+            cursor.execute(query, *args)
+            connection.commit()
+            if fetch_option == "fetchone":
+                return cursor.fetchone()
+            elif fetch_option == "fetchall":
+                return cursor.fetchall()
+        except psycopg2.Error as e:
+            print(f"Error: {e}")
+            connection.rollback()
+        finally:
+            connection.close()
 
     def check_that_table_exist(self, cursor, table_name):
         table_exists_query = f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '{table_name}')"
@@ -237,132 +264,71 @@ class PostgreSQL:
             connection.close()
 
     def validate_username(self, username):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            users_query = "SELECT username FROM users " \
-                          "WHERE username = %s"
-            cursor.execute(users_query, (username, ))
-            existing_username = cursor.fetchone()
-            if existing_username is not None:
-                return False
-            else:
-                return True
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
+        validate_username_query = "SELECT username FROM users " \
+                                  "WHERE username = ?"
+        existing_username = self.execute_sql_query(validate_username_query, (username, ), fetch_option = "fetchone")
+        if existing_username is not None:
             return False
-        finally:
-            connection.close()
+        else:
+            return True
 
     def validate_credentials(self, username, password):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            users_query = "SELECT username, password FROM users " \
-                          "WHERE username = %s AND password = %s"
-            cursor.execute(users_query, (username, password))
-            credentials = cursor.fetchone()
-            if credentials is not None:
-                return True
+        hashed_password_query = "SELECT password FROM users " \
+                                "WHERE username = ?"
+        get_hashed_password = self.execute_sql_query(hashed_password_query, (username, ), fetch_option = "fetchone")
+        if get_hashed_password is not None:
+            hashed_password = get_hashed_password[0]
+            validate_password = self.data_utils.check_hashed_password(password, hashed_password)
+            if validate_password == True:
+                validate_credentials_query = "SELECT username, password FROM users " \
+                                             "WHERE username = ? AND password = ?"
+                credentials = self.execute_sql_query(validate_credentials_query, (username, hashed_password), fetch_option = "fetchone")
+                if credentials is not None:
+                    return True
+                else:
+                    return False
             else:
                 return False
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
+        else:
             return False
-        finally:
-            connection.close()
 
     def register_user_to_db(self, username, password):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            insert_user_query = "INSERT INTO users (username, password) " \
-                                "VALUES (%s, %s)"
-            cursor.execute(insert_user_query, (username, password))
-            connection.commit()
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
-            connection.rollback()
-        finally:
-            connection.close()
+        insert_user_query = "INSERT INTO users (username, password) " \
+                            "VALUES (%s, %s)"
+        self.execute_sql_query(insert_user_query, (username, password))
 
     def delete_user_from_db(self, username, password):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            delete_user_query = "DELETE FROM users " \
-                                "WHERE username = %s AND password = %s"
-            cursor.execute(delete_user_query, (username, password))
-            connection.commit()
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
-            connection.rollback()
-        finally:
-            connection.close()
+        delete_user_query = "DELETE FROM users " \
+                            "WHERE username = %s AND password = %s"
+        self.execute_sql_query(delete_user_query, (username, password))
 
     def update_user_data(self, new_username, new_password, username, password):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            update_data_query = "UPDATE users " \
-                                "SET username = %s, password = %s " \
-                                "WHERE username = %s AND password = %s"
-            cursor.execute(update_data_query, (new_username, new_password, username, password))
-            connection.commit()
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
-            connection.rollback()
-        finally:
-            connection.close()
+        update_data_query = "UPDATE users " \
+                            "SET username = %s, password = %s " \
+                            "WHERE username = %s AND password = %s"
+        self.execute_sql_query(update_data_query, (new_username, new_password, username, password))
 
     def user_messages_list(self, username, boolean_condition):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            messages_list_query = "SELECT sender, message_text FROM messages " \
-                                  "WHERE user_id = (SELECT user_id FROM users WHERE username = %s) " \
-                                  "AND archived = %s " \
-                                  "ORDER BY message_date"
-            cursor.execute(messages_list_query, (username, boolean_condition))
-            messages_list = cursor.fetchall()
-            return messages_list
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
-            messages_list = []
-            return messages_list
-        finally:
-            connection.close()
+        user_messages_list_query = "SELECT sender, message_text FROM messages " \
+                                   "WHERE user_id = (SELECT user_id FROM users WHERE username = ?) " \
+                                   "AND archived = ? " \
+                                   "ORDER BY message_date"
+        messages_list = self.execute_sql_query(user_messages_list_query, (username, boolean_condition), fetch_option = "fetchall")
+        return messages_list
 
     def save_message_to_db(self, sender, message, recipient):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            cursor.execute("SELECT user_id FROM users WHERE username = %s", (recipient, ))
-            recipient_id = cursor.fetchone()
+            get_recipient_query = "SELECT user_id FROM users " \
+                                  "WHERE username = ?"
+            recipient_id = self.execute_sql_query(get_recipient_query, (recipient, ), fetch_option = "fetchone")
             message_save_query = "INSERT INTO messages (user_id, sender, message_text) " \
-                                 "VALUES (%s, %s, %s)"
-            cursor.execute(message_save_query, (recipient_id[0], sender, message))
-            connection.commit()
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
-            connection.rollback()
-        finally:
-            connection.close()
+                                 "VALUES (?, ?, ?)"
+            self.execute_sql_query(message_save_query, (recipient_id[0], sender, message))
 
     def archive_messages(self, username):
-        connection = self.connection_to_db()
-        try:
-            cursor = connection.cursor()
-            archive_messages_query = "UPDATE messages " \
-                                     "SET archived = True " \
-                                     "WHERE user_id = (SELECT user_id FROM users WHERE username = %s)" \
-                                     "AND archived = False"
-            cursor.execute(archive_messages_query, (username, ))
-            connection.commit()
-        except psycopg2.Error as e:
-            print(f"Error: {e}")
-            connection.rollback()
-        finally:
-            connection.close()
+        archive_messages_query = "UPDATE messages " \
+                                 "SET archived = True " \
+                                 "WHERE user_id = (SELECT user_id FROM users WHERE username = ?)" \
+                                 "AND archived = False"
+        self.execute_sql_query(archive_messages_query, (username, ))
 
 
