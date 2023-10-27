@@ -5,10 +5,10 @@ from unittest.mock import Mock, patch
 from datetime import datetime as dt
 from client import Client
 from server import Server
-from data_utils import DataUtils, SQLiteUtils
+from data_utils import DataUtils, SQLite
 from communication_utils import CommunicationUtils
 from users_utils import User
-from variables import db_file_name
+from variables import sqlite_test_database
 
 
 class TestClient(unittest.TestCase):
@@ -126,8 +126,8 @@ class TestServer(unittest.TestCase):
 class TestDataUtils(unittest.TestCase):
     def setUp(self):
         self.data_utils = DataUtils()
-        self.sqlite_utils = SQLiteUtils()
-        self.connection = self.sqlite_utils.create_connection(db_file_name)
+        self.sqlite_utils = SQLite(sqlite_test_database)
+        self.connection = self.sqlite_utils.create_connection()
 
     def tearDown(self):
         self.connection.close()
@@ -148,7 +148,7 @@ class TestDataUtils(unittest.TestCase):
         password = "password_password"
         new_username = "new_username"
         new_password = "new_password"
-        self.assertFalse(self.sqlite_utils.validate_username(username))
+        self.assertTrue(self.sqlite_utils.validate_username(username))
         self.sqlite_utils.register_user_to_db(username, password)
         self.assertFalse(self.sqlite_utils.validate_username(username))
         self.assertTrue(self.sqlite_utils.validate_credentials(username, password))
@@ -166,6 +166,7 @@ class TestDataUtils(unittest.TestCase):
         message_2 = "test_message_2"
         username = "user_test"
         boolean_condition = False
+        self.sqlite_utils.register_user_to_db(sender, "sender_password")
         self.assertFalse(self.sqlite_utils.validate_username(username))
         self.assertFalse(self.sqlite_utils.validate_username(sender))
         self.sqlite_utils.save_message_to_db(sender, message, username)
@@ -186,6 +187,19 @@ class TestDataUtils(unittest.TestCase):
         if os.path.exists(filename):
             os.remove(filename)
         self.assertFalse(os.path.exists(filename))
+
+    def test_hash_password(self):
+        raw_password = "test_password"
+        hashed_password = self.data_utils.hash_password(raw_password)
+        self.assertTrue(hashed_password)
+
+    def test_check_hashed_password(self):
+        raw_password = "test_password"
+        hashed_password = self.data_utils.hash_password(raw_password)
+        is_valid = self.data_utils.check_hashed_password(raw_password, hashed_password)
+        self.assertTrue(is_valid)
+        is_invalid = self.data_utils.check_hashed_password("wrong_password", hashed_password)
+        self.assertFalse(is_invalid)
 
 
 class TestCommunicationUtils(unittest.TestCase):
@@ -339,16 +353,16 @@ class TestUser(unittest.TestCase):
     def setUp(self):
         self.user = User("test_username", "test_password")
         self.data_utils = DataUtils()
-        self.sqlite_utils = SQLiteUtils()
+        self.sqlite_utils = SQLite(sqlite_test_database)
 
     def test_register_user_success(self):
-        user_data = {"username": self.user.username, "password": self.user.password}
+        user_data = {"username": "test_username", "password": "test_password"}
         result = self.user.register_user(user_data)
         self.assertEqual(result, {"User": "test_username registered successfully"})
         self.sqlite_utils.delete_user_from_db(self.user.username, self.user.password)
 
     def test_register_user_with_used_username(self):
-        user_data = {"username": "szymon", "password": self.user.password}
+        user_data = {"username": self.user.username, "password": self.user.password}
         result = self.user.register_user(user_data)
         self.assertIsInstance(result, dict)
         self.assertEqual(result["Username"], "In use, choose another")
