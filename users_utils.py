@@ -1,5 +1,5 @@
 from data_utils import DataUtils, SQLite, PostgreSQL
-from variables import database
+from variables import sqlite_database, postgreSQL_server_connection_dict
 
 
 class User:
@@ -9,8 +9,8 @@ class User:
         self.admin_role = False
         self.logged_in = False
         self.data_utils = DataUtils()
-        self.sqlite_utils = SQLite(database)
-        self.postgresql_utils = PostgreSQL()
+        self.sqlite_utils = SQLite(sqlite_database)
+        # self.postgresql_utils = PostgreSQL(**postgreSQL_server_connection_dict)
 
     def register_user(self, user_data):
         username = user_data["username"]
