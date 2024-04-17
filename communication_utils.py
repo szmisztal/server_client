@@ -34,11 +34,12 @@ class ServerResponses:
             "delete"
         ]
         self.commands_list_for_not_logged_in_user = [
+            "help",
             "register",
             "login",
             "stop"
         ]
-        self.all_commands = self.commands_list_for_not_logged_in_user + self.commands_list_for_logged_in_user
+        self.all_commands_list = set(self.commands_list_for_not_logged_in_user + self.commands_list_for_logged_in_user)
 
     def welcome_message(self):
         return self.message_template.template(message = "Type 'help' to see available commands")
@@ -71,6 +72,7 @@ class ServerResponses:
             }
         else:
             commands_dict = {
+                "Help": "Shows available commands",
                 "Register": "Sign up new user",
                 "Login": "Sign in the user",
                 "Stop": "Shuts down the server"
@@ -101,16 +103,6 @@ class ServerResponses:
     def wrong_credentials(self):
         return self.message_template.template(message = "Wrong username or password, try again")
 
-    def handling_commands_for_logged_in_user(self, command):
-        if command not in self.commands_list_for_logged_in_user and command in self.commands_list_for_not_logged_in_user:
-            return self.forbidden_command_for_logged_in_user()
-        elif command == "uptime":
-            return self.uptime()
-        elif command == "info":
-            return self.info()
-        elif command == "help":
-            return self.help()
-
     def handling_register_command(self, data):
         verify_username = self.user.register_user(data)
         if verify_username is True:
@@ -124,24 +116,40 @@ class ServerResponses:
             return self.user_sign_in_successfully()
         return self.wrong_credentials()
 
+    def handling_logout_command(self):
+        self.user_logging_status = False
+        return self.message_template.template(message = "You were log out successfully")
+
     def handling_commands_for_not_logged_in_user(self, command, data):
         if command not in self.commands_list_for_not_logged_in_user and command in self.commands_list_for_logged_in_user:
             return self.forbidden_command_for_not_logged_in_user()
         elif command == "register":
-            self.handling_register_command(data)
+            return self.handling_register_command(data)
         elif command == "login":
-            self.handling_login_command(data)
+            return self.handling_login_command(data)
+
+    def handling_commands_for_logged_in_user(self, command):
+        if command not in self.commands_list_for_logged_in_user and command in self.commands_list_for_not_logged_in_user:
+            return self.forbidden_command_for_logged_in_user()
+        elif command == "uptime":
+            return self.uptime()
+        elif command == "info":
+            return self.info()
+        elif command == "logout":
+            return self.handling_logout_command()
 
     def response_to_client(self, client_request):
         command, data = client_request[0], client_request[1]
         if command == "stop":
             return self.stop_command()
-        elif command not in self.all_commands:
+        elif command == "help":
+            return self.help()
+        elif command not in self.all_commands_list:
             return self.unknown_command(command)
         if self.user_logging_status:
-            self.handling_commands_for_logged_in_user(command)
+            return self.handling_commands_for_logged_in_user(command)
         else:
-            self.handling_commands_for_not_logged_in_user(command, data)
+            return self.handling_commands_for_not_logged_in_user(command, data)
 
         #     elif "New data" in client_request:
         #         user_data = client_request["New data"]
@@ -154,8 +162,6 @@ class ServerResponses:
         #         return user.show_new_messages()
         #     elif client_request == "archives":
         #         return user.show_archived_messages()
-        #     elif client_request == "logout":
-        #         return user.logout()
         #     elif "Delete confirmation" in client_request:
         #         user_confirmation = client_request["Delete confirmation"]
         #         return user.delete_user(user_confirmation)
