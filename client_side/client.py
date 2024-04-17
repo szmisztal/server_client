@@ -1,6 +1,6 @@
 import socket as s
-from data_utils import DataUtils
-from communication_utils import ClientRequests
+from server_side.data_utils import DataUtils
+from client_side.client_messages import ClientRequests
 from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 
 

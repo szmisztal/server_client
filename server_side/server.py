@@ -1,8 +1,8 @@
 import socket as s
 from datetime import datetime as dt
-from communication_utils import ServerResponses
-from data_utils import DataUtils, SQLite
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, sqlite_database, postgreSQL_server_connection_dict
+from server_side.server_messages import ServerResponses
+from server_side.data_utils import DataUtils
+from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 
 
 class Server:
@@ -15,11 +15,9 @@ class Server:
         self.encode_format = encode_format
         self.server_responses = ServerResponses(self)
         self.data_utils = DataUtils()
-        self.sqlite_utils = SQLite(sqlite_database)
-        # self.postgresql_utils = PostgreSQL(**postgreSQL_server_connection_dict)
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "1.2.2"
+        self.server_version = "1.2.3"
         self.server_start_time = dt.now()
 
     def connect_with_client(self, server_socket):

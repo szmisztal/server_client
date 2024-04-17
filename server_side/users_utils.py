@@ -1,5 +1,5 @@
-from data_utils import DataUtils, SQLite
-from config_variables import sqlite_database, postgreSQL_server_connection_dict
+from server_side.data_utils import DataUtils, SQLite
+from config_variables import sqlite_database_path, postgreSQL_server_connection_dict
 
 
 class User:
@@ -8,7 +8,7 @@ class User:
         self.__password = None
         self.admin_role = False
         self.data_utils = DataUtils()
-        self.sqlite_utils = SQLite(sqlite_database)
+        self.sqlite_utils = SQLite(sqlite_database_path)
         # self.postgresql_utils = PostgreSQL(**postgreSQL_server_connection_dict)
 
     def register_user(self, user_data):
@@ -20,32 +20,11 @@ class User:
         return validate_username
 
     def login_user(self, user_data):
-        username = user_data["username"]
-        password = user_data["password"]
+        username, password = user_data["username"], user_data["password"]
         validate_data = self.sqlite_utils.validate_credentials(username, password)
         if validate_data:
             self.username, self.__password = username, password
         return validate_data
-
-    def logout(self):
-        logout_message = {
-            "Logout": "You was successfully log out"
-        }
-        return logout_message
-
-    def delete_user(self, user_confirmation):
-        if user_confirmation != "yes":
-            not_deletion_message = {
-                "Confirmation failed": "Your data will remain in the database"
-            }
-            return not_deletion_message
-        else:
-            hashed_password = self.sqlite_utils.get_hashed_password_from_db(self.username)
-            self.sqlite_utils.delete_user_from_db(self.username, hashed_password)
-            deletion_message = {
-                "Delete": "You have been deleted from database"
-            }
-            return deletion_message
 
     def change_user_data(self, new_user_data):
         new_username = new_user_data["username"]
@@ -64,6 +43,20 @@ class User:
                 "Success": f"Your new data: username: {new_username}, password: {new_password}"
             }
             return change_data_message
+
+    def delete_user(self, user_confirmation):
+        if user_confirmation != "yes":
+            not_deletion_message = {
+                "Confirmation failed": "Your data will remain in the database"
+            }
+            return not_deletion_message
+        else:
+            hashed_password = self.sqlite_utils.get_hashed_password_from_db(self.username)
+            self.sqlite_utils.delete_user_from_db(self.username, hashed_password)
+            deletion_message = {
+                "Delete": "You have been deleted from database"
+            }
+            return deletion_message
 
     def send_message(self, recipient_data, message_data):
         recipient = recipient_data

@@ -1,5 +1,5 @@
 from datetime import datetime as dt
-from users_utils import User
+from server_side.users_utils import User
 
 
 class MessageTemplate:
@@ -21,6 +21,7 @@ class ServerResponses:
         self.message_template = MessageTemplate("RESPONSE")
         self.user = User()
         self.user_logging_status = False
+        self.user_username = None
         self.commands_list_for_logged_in_user = [
             "uptime",
             "info",
@@ -103,15 +104,16 @@ class ServerResponses:
     def wrong_credentials(self):
         return self.message_template.template(message = "Wrong username or password, try again")
 
-    def handling_register_command(self, data):
-        verify_username = self.user.register_user(data)
+    def handling_register_command(self, user_data):
+        verify_username = self.user.register_user(user_data)
         if verify_username is True:
             return self.user_register_successfully()
         return self.user_register_failed()
 
-    def handling_login_command(self, data):
-        verify_credentials = self.user.login_user(data)
+    def handling_login_command(self, user_data):
+        verify_credentials = self.user.login_user(user_data)
         if verify_credentials:
+            self.user_username = user_data["username"]
             self.user_logging_status = True
             return self.user_sign_in_successfully()
         return self.wrong_credentials()
@@ -187,28 +189,6 @@ class ServerResponses:
         #         return error_message
 
 
-class ClientRequests:
-    def __init__(self):
-        self.message_template = MessageTemplate("REQUEST")
-
-    def user_data_input(self):
-        username = input("Username: ")
-        password = input("Password: ")
-        user_data = {
-            "username": username,
-            "password": password
-        }
-        return user_data
-
-    def user_data_handling(self, command):
-        user_data = self.user_data_input()
-        return self.message_template.template(message = command, data = user_data)
-
-    def request_to_server(self):
-        command = input("REQUEST: ").lower()
-        if command in ["register", "login"]:
-            return self.user_data_handling(command)
-        return self.message_template.template(message = command)
 
 
 
