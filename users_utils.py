@@ -1,5 +1,5 @@
-from data_utils import DataUtils, SQLite, PostgreSQL
-from variables import sqlite_database, postgreSQL_server_connection_dict
+from data_utils import DataUtils, SQLite
+from config_variables import sqlite_database, postgreSQL_server_connection_dict
 
 
 class User:

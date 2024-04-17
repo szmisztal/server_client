@@ -6,9 +6,9 @@ from datetime import datetime as dt
 from client import Client
 from server import Server
 from data_utils import DataUtils, SQLite
-from communication_utils import CommunicationUtils
+from communication_utils import ServerResponses
 from users_utils import User
-from variables import sqlite_test_database
+from config_variables import sqlite_test_database
 
 
 class TestClient(unittest.TestCase):
@@ -205,7 +205,7 @@ class TestDataUtils(unittest.TestCase):
 class TestCommunicationUtils(unittest.TestCase):
     def setUp(self):
         self.server = Mock()
-        self.communication_utils = CommunicationUtils(self.server)
+        self.communication_utils = ServerResponses(self.server)
         self.user = Mock()
         self.user.logged_in = True
 
