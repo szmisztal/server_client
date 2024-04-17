@@ -41,6 +41,8 @@ class SQLite:
     def __init__(self, db_file):
         self.data_utils = DataUtils()
         self.db_file = db_file
+        self.connection = self.create_connection()
+        self.cursor = self.connection.cursor()
         self.create_user_table()
         self.create_message_table()
 
@@ -53,24 +55,17 @@ class SQLite:
             return None
 
     def execute_sql_query(self, query, *args, fetch_option = None):
-        connection = self.create_connection()
-        cursor = connection.cursor()
-        if connection is not None:
+        with self.connection:
             try:
-                cursor.execute(query, *args)
-                connection.commit()
+                self.cursor.execute(query, *args)
+                self.connection.commit()
                 if fetch_option == "fetchone":
-                    return cursor.fetchone()
+                    return self.cursor.fetchone()
                 elif fetch_option == "fetchall":
-                    return cursor.fetchall()
+                    return self.cursor.fetchall()
             except Error as e:
                 print(f"Error: {e}")
-                connection.rollback()
-            finally:
-                cursor.close()
-                connection.close()
-        else:
-            print("Cannot create the database connection.")
+                self.connection.rollback()
 
     def create_user_table(self):
         create_user_table_query = """ CREATE TABLE IF NOT EXISTS users(
@@ -95,79 +90,51 @@ class SQLite:
         self.execute_sql_query(create_message_table_query)
 
     def validate_username(self, username):
-        validate_username_query = "SELECT username FROM users " \
-                                  "WHERE username = ?"
-        existing_username = self.execute_sql_query(validate_username_query, (username, ), fetch_option = "fetchone")
+        query = "SELECT username FROM users WHERE username = ?"
+        existing_username = self.execute_sql_query(query, (username, ), fetch_option = "fetchone")
         if existing_username is not None:
             return False
-        else:
-            return True
+        return True
 
     def get_hashed_password_from_db(self, username):
-        hashed_password_query = "SELECT password FROM users " \
-                                "WHERE username = ?"
-        hashed_password_tuple = self.execute_sql_query(hashed_password_query, (username, ), fetch_option = "fetchone")
-        hashed_password = hashed_password_tuple[0]
-        return hashed_password
+        query = "SELECT password FROM users WHERE username = ?"
+        hashed_password = self.execute_sql_query(query, (username, ), fetch_option = "fetchone")
+        return hashed_password[0]
 
     def validate_credentials(self, username, password):
-        hashed_password_query = "SELECT password FROM users " \
-                                "WHERE username = ?"
-        get_hashed_password = self.execute_sql_query(hashed_password_query, (username, ), fetch_option = "fetchone")
-        if get_hashed_password is not None:
-            hashed_password = get_hashed_password[0]
-            validate_password = self.data_utils.check_hashed_password(password, hashed_password)
-            if validate_password == True:
-                validate_credentials_query = "SELECT username, password FROM users " \
-                                             "WHERE username = ? AND password = ?"
-                credentials = self.execute_sql_query(validate_credentials_query, (username, hashed_password), fetch_option = "fetchone")
-                if credentials is not None:
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        else:
-            return False
+        hashed_password = self.get_hashed_password_from_db(username)
+        validate_password = self.data_utils.check_hashed_password(password, hashed_password)
+        if validate_password:
+            return True
+        return False
 
     def register_user_to_db(self, username, password):
-        insert_user_query = "INSERT INTO users (username, password) " \
-                            "VALUES (?, ?)"
-        self.execute_sql_query(insert_user_query, (username, password))
+        query = "INSERT INTO users (username, password) VALUES (?, ?)"
+        self.execute_sql_query(query, (username, password))
 
     def delete_user_from_db(self, username, password):
-        delete_user_query = "DELETE FROM users " \
-                            "WHERE username = ? AND password = ?"
-        self.execute_sql_query(delete_user_query, (username, password))
+        query = "DELETE FROM users WHERE username = ? AND password = ?"
+        self.execute_sql_query(query, (username, password))
 
     def update_user_data(self, new_username, new_password, username, password):
-        update_user_data_query = "UPDATE users " \
-                                 "SET username = ?, password = ? " \
-                                 "WHERE username = ? AND password = ?"
-        self.execute_sql_query(update_user_data_query, (new_username, new_password, username, password))
+        query = "UPDATE users SET username = ?, password = ? WHERE username = ? AND password = ?"
+        self.execute_sql_query(query, (new_username, new_password, username, password))
 
     def user_messages_list(self, username, boolean_condition):
-        user_messages_list_query = "SELECT sender, message_text FROM messages " \
-                                   "WHERE user_id = (SELECT user_id FROM users WHERE username = ?) " \
-                                   "AND archived = ? " \
-                                   "ORDER BY message_date"
-        messages_list = self.execute_sql_query(user_messages_list_query, (username, boolean_condition), fetch_option = "fetchall")
+        query = "SELECT sender, message_text FROM messages WHERE user_id = (SELECT user_id FROM users WHERE username = ?) " \
+                "AND archived = ? ORDER BY message_date"
+        messages_list = self.execute_sql_query(query, (username, boolean_condition), fetch_option = "fetchall")
         return messages_list
 
     def save_message_to_db(self, sender, message, recipient):
-            get_recipient_query = "SELECT user_id FROM users " \
-                                  "WHERE username = ?"
-            recipient_id = self.execute_sql_query(get_recipient_query, (recipient, ), fetch_option = "fetchone")
-            message_save_query = "INSERT INTO messages (user_id, sender, message_text) " \
-                                 "VALUES (?, ?, ?)"
-            self.execute_sql_query(message_save_query, (recipient_id[0], sender, message))
+        get_recipient_query = "SELECT user_id FROM users WHERE username = ?"
+        recipient_id = self.execute_sql_query(get_recipient_query, (recipient, ), fetch_option = "fetchone")
+        message_save_query = "INSERT INTO messages (user_id, sender, message_text) VALUES (?, ?, ?)"
+        self.execute_sql_query(message_save_query, (recipient_id[0], sender, message))
 
     def archive_messages(self, username):
-        archive_messages_query = "UPDATE messages " \
-                                 "SET archived = True " \
-                                 "WHERE user_id = (SELECT user_id FROM users WHERE username = ?)" \
-                                 "AND archived = False"
-        self.execute_sql_query(archive_messages_query, (username, ))
+        query = "UPDATE messages SET archived = True WHERE user_id = (SELECT user_id FROM users WHERE username = ?) AND archived = False"
+        self.execute_sql_query(query, (username, ))
 
 
 # class PostgreSQL:
