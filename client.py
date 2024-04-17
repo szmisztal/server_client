@@ -17,7 +17,7 @@ class Client:
         self.is_running = True
 
     def send_command(self, client_socket):
-        client_request = self.client_requests.command_input()
+        client_request = self.client_requests.request_to_server()
         client_request_json = self.data_utils.serialize_to_json(client_request)
         client_socket.sendall(client_request_json)
 
@@ -39,17 +39,18 @@ class Client:
 
     def read_server_response(self, client_socket):
         server_response = client_socket.recv(self.BUFFER)
-        deserialized_data = self.data_utils.deserialize_json(server_response)
-        if isinstance(deserialized_data, dict):
-            for key, value in deserialized_data.items():
-                print(f">>> {key}: {value}")
-        elif isinstance(deserialized_data, list):
-            if not deserialized_data:
-                print("You don`t have any messages to read")
-            else:
-                for message in deserialized_data:
-                    print(f"Message from: {message[0]} \nText: {message[1]} \n"
-                          f"--------------------------------------------------------")
+        deserialized_response = self.data_utils.deserialize_json(server_response)
+        for key, value in deserialized_response.items():
+            print(f">>> {key}: {value}")
+        if "Server`s shutting down..." in deserialized_response["message"]:
+            self.stop()
+        # elif isinstance(deserialized_data, list):
+        #     if not deserialized_data:
+        #         print("You don`t have any messages to read")
+        #     else:
+        #         for message in deserialized_data:
+        #             print(f"Message from: {message[0]} \nText: {message[1]} \n"
+        #                   f"--------------------------------------------------------")
 
     def start(self):
         with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
@@ -58,6 +59,12 @@ class Client:
             while self.is_running:
                 self.send_command(client_socket)
                 self.read_server_response(client_socket)
+
+    def stop(self):
+        print("CLIENT CLOSED...")
+        self.is_running = False
+
+
 
 if __name__ == "__main__":
     client = Client()
