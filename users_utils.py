@@ -3,46 +3,30 @@ from config_variables import sqlite_database, postgreSQL_server_connection_dict
 
 
 class User:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self):
+        self.username = None
+        self.__password = None
         self.admin_role = False
-        self.logged_in = False
         self.data_utils = DataUtils()
         self.sqlite_utils = SQLite(sqlite_database)
         # self.postgresql_utils = PostgreSQL(**postgreSQL_server_connection_dict)
 
     def register_user(self, user_data):
         username = user_data["username"]
-        password = user_data["password"]
-        hashed_password = self.data_utils.hash_password(password)
-        validated_username = self.sqlite_utils.validate_username(username)
-        if validated_username == True:
-            self.sqlite_utils.register_user_to_db(username, hashed_password)
-            register_message = {
-                "User": f"{username} registered successfully",
-            }
-            return register_message
-        else:
-            error_message = {
-                "Username": "In use, choose another"
-            }
-            return error_message
+        validate_username = self.sqlite_utils.validate_username(username)
+        if validate_username == True:
+            password = user_data["password"]
+            hash_password = self.data_utils.hash_password(password)
+            self.sqlite_utils.register_user_to_db(username, hash_password)
+        return validate_username
 
     def login_user(self, user_data):
         username = user_data["username"]
         password = user_data["password"]
-        validated_data = self.sqlite_utils.validate_credentials(username, password)
-        if validated_data == True:
-            login_message = {
-                f"User '{username}'": "Sign in successfully"
-            }
-            return login_message
-        else:
-            error_message = {
-                "Incorrect data": "Try again"
-            }
-            return error_message
+        validate_data = self.sqlite_utils.validate_credentials(username, password)
+        if validate_data:
+            self.username, self.__password = username, password
+        return validate_data
 
     def logout(self):
         logout_message = {
@@ -121,6 +105,6 @@ class User:
         return archived_messages
 
     def __str__(self):
-        return f"Username: {self.username}, Password: {self.password}, Login status: {self.logged_in}, Admin role: {self.admin_role}"
+        return f"Username: {self.username}, Password: {self.__password}, Admin role: {self.admin_role}"
 
 
