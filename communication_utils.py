@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from users_utils import User
 
 
 class MessageTemplate:
@@ -18,13 +19,13 @@ class ServerResponses:
     def __init__(self, server):
         self.server = server
         self.message_template = MessageTemplate("RESPONSE")
-        self.commands_list = [
+        self.user = User()
+        self.user_logging_status = False
+        self.commands_list_for_logged_in_user = [
             "uptime",
             "info",
             "help",
             "stop",
-            "register",
-            "login",
             "change data",
             "send message",
             "mailbox",
@@ -32,6 +33,12 @@ class ServerResponses:
             "logout",
             "delete"
         ]
+        self.commands_list_for_not_logged_in_user = [
+            "register",
+            "login",
+            "stop"
+        ]
+        self.all_commands = self.commands_list_for_not_logged_in_user + self.commands_list_for_logged_in_user
 
     def welcome_message(self):
         return self.message_template.template(message = "Type 'help' to see available commands")
@@ -49,38 +56,93 @@ class ServerResponses:
         return self.message_template.template(message = server_info_dict)
 
     def help(self):
-        commands_dict = {
-            "Uptime": "Shows the lifetime of the server",
-            "Info": "Shows the current version and server start date",
-            "Help": "Shows available commands",
-            "Change data": "Change your current user data",
-            "Send message": "Send message to another user",
-            "Mailbox": "Read new messages",
-            "Archives": "Read archived messages",
-            "Logout": "Sign out the user",
-            "Delete": "Delete your data from database",
-            "Stop": "Shuts down the server",
-        }
-    # else:
-    #     commands_dict = {
-    #         "Register": "Sign up new user",
-    #         "Login": "Sign in the user",
-    #         "Stop": "Shuts down the server"
-    #     }
+        if self.user_logging_status:
+            commands_dict = {
+                "Uptime": "Shows the lifetime of the server",
+                "Info": "Shows the current version and server start date",
+                "Help": "Shows available commands",
+                "Change data": "Change your current user data",
+                "Send message": "Send message to another user",
+                "Mailbox": "Read new messages",
+                "Archives": "Read archived messages",
+                "Logout": "Sign out the user",
+                "Delete": "Delete your data from database",
+                "Stop": "Shuts down the server",
+            }
+        else:
+            commands_dict = {
+                "Register": "Sign up new user",
+                "Login": "Sign in the user",
+                "Stop": "Shuts down the server"
+            }
         return self.message_template.template(message = commands_dict)
+
+    def stop_command(self):
+        return self.message_template.template(message = "Server`s shutting down...")
 
     def unknown_command(self, client_request):
         return self.message_template.template(message = f"Unknown command - '{client_request}', try again")
 
-    def response_to_client(self, client_request):
-        if client_request not in self.commands_list:
-            return self.unknown_command(client_request)
-        if client_request == "uptime":
+    def forbidden_command_for_not_logged_in_user(self):
+        return self.message_template.template(message = "You have to sign in first")
+
+    def forbidden_command_for_logged_in_user(self):
+        return self.message_template.template(message = "If you want to register new account or log in once more - log out first")
+
+    def user_register_successfully(self):
+        return self.message_template.template(message = "You are registered successfully")
+
+    def user_register_failed(self):
+        return self.message_template.template(message = "Username in use, choose another one")
+
+    def user_sign_in_successfully(self):
+        return self.message_template.template(message = "You are logged in successfully")
+
+    def wrong_credentials(self):
+        return self.message_template.template(message = "Wrong username or password, try again")
+
+    def handling_commands_for_logged_in_user(self, command):
+        if command not in self.commands_list_for_logged_in_user and command in self.commands_list_for_not_logged_in_user:
+            return self.forbidden_command_for_logged_in_user()
+        elif command == "uptime":
             return self.uptime()
-        elif client_request == "info":
+        elif command == "info":
             return self.info()
-        elif client_request == "help":
+        elif command == "help":
             return self.help()
+
+    def handling_register_command(self, data):
+        verify_username = self.user.register_user(data)
+        if verify_username is True:
+            return self.user_register_successfully()
+        return self.user_register_failed()
+
+    def handling_login_command(self, data):
+        verify_credentials = self.user.login_user(data)
+        if verify_credentials:
+            self.user_logging_status = True
+            return self.user_sign_in_successfully()
+        return self.wrong_credentials()
+
+    def handling_commands_for_not_logged_in_user(self, command, data):
+        if command not in self.commands_list_for_not_logged_in_user and command in self.commands_list_for_logged_in_user:
+            return self.forbidden_command_for_not_logged_in_user()
+        elif command == "register":
+            self.handling_register_command(data)
+        elif command == "login":
+            self.handling_login_command(data)
+
+    def response_to_client(self, client_request):
+        command, data = client_request[0], client_request[1]
+        if command == "stop":
+            return self.stop_command()
+        elif command not in self.all_commands:
+            return self.unknown_command(command)
+        if self.user_logging_status:
+            self.handling_commands_for_logged_in_user(command)
+        else:
+            self.handling_commands_for_not_logged_in_user(command, data)
+
         #     elif "New data" in client_request:
         #         user_data = client_request["New data"]
         #         return user.change_user_data(user_data)
@@ -123,10 +185,6 @@ class ClientRequests:
     def __init__(self):
         self.message_template = MessageTemplate("REQUEST")
 
-    def command_input(self):
-        command = input("REQUEST: ").lower()
-        return self.message_template.template(message = command)
-
     def user_data_input(self):
         username = input("Username: ")
         password = input("Password: ")
@@ -136,9 +194,15 @@ class ClientRequests:
         }
         return user_data
 
-    def register_user(self):
+    def user_data_handling(self, command):
         user_data = self.user_data_input()
-        return self.message_template.template(message = "REGISTER", data = user_data)
+        return self.message_template.template(message = command, data = user_data)
+
+    def request_to_server(self):
+        command = input("REQUEST: ").lower()
+        if command in ["register", "login"]:
+            return self.user_data_handling(command)
+        return self.message_template.template(message = command)
 
 
 
