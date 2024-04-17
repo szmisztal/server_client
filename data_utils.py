@@ -108,9 +108,10 @@ class SQLite:
             return True
         return False
 
-    def register_user_to_db(self, username, password):
+    def register_user_to_db(self, username, raw_password):
+        hashed_password = self.data_utils.hash_password(raw_password)
         query = "INSERT INTO users (username, password) VALUES (?, ?)"
-        self.execute_sql_query(query, (username, password))
+        self.execute_sql_query(query, (username, hashed_password))
 
     def delete_user_from_db(self, username, password):
         query = "DELETE FROM users WHERE username = ? AND password = ?"

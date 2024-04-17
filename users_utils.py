@@ -16,8 +16,7 @@ class User:
         validate_username = self.sqlite_utils.validate_username(username)
         if validate_username == True:
             password = user_data["password"]
-            hash_password = self.data_utils.hash_password(password)
-            self.sqlite_utils.register_user_to_db(username, hash_password)
+            self.sqlite_utils.register_user_to_db(username, password)
         return validate_username
 
     def login_user(self, user_data):
