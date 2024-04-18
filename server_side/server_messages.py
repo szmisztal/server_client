@@ -107,6 +107,12 @@ class ServerResponses:
     def change_data_successfully(self):
         return self.message_template.template(message = "Data changed successfully")
 
+    def negative_decision_for_delete_account(self):
+        return self.message_template.template(message = "You account stay in database")
+
+    def positive_delete_account(self):
+        return self.message_template.template(message = "You were successfully delete from database")
+
     def handling_register_command(self, user_data):
         verify_username = self.user.register_user(user_data)
         if verify_username is True:
@@ -133,6 +139,14 @@ class ServerResponses:
             return self.change_data_successfully()
         return self.username_in_use_message()
 
+    def handling_delete_account_command(self, data):
+        verify_decision = self.user.delete_user(data)
+        if verify_decision:
+            self.user_username = None
+            self.user_logging_status = False
+            return self.positive_delete_account()
+        return self.negative_decision_for_delete_account()
+
     def handling_commands_for_not_logged_in_user(self, command, data):
         if command not in self.commands_list_for_not_logged_in_user and command in self.commands_list_for_logged_in_user:
             return self.forbidden_command_for_not_logged_in_user()
@@ -152,6 +166,8 @@ class ServerResponses:
             return self.handling_logout_command()
         elif command == "change data":
             return self.handling_change_data_command(data)
+        elif command == "delete":
+            return self.handling_delete_account_command(data)
 
     def response_to_client(self, client_request):
         command, data = client_request[0], client_request[1]
