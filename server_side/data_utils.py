@@ -115,9 +115,10 @@ class SQLite:
         query = "INSERT INTO users (username, password) VALUES (?, ?)"
         self.execute_sql_query(query, (username, hashed_password))
 
-    def delete_user_from_db(self, username, password):
+    def delete_user_from_db(self, username):
+        hashed_password = self.get_hashed_password_from_db(username)
         query = "DELETE FROM users WHERE username = ? AND password = ?"
-        self.execute_sql_query(query, (username, password))
+        self.execute_sql_query(query, (username, hashed_password))
 
     def update_user_data(self, new_username, new_password, username):
         new_hashed_password = self.data_utils.hash_password(new_password)
