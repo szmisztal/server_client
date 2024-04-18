@@ -41,18 +41,10 @@ class User:
         return validate_username
 
     def delete_user(self, user_confirmation):
-        if user_confirmation != "yes":
-            not_deletion_message = {
-                "Confirmation failed": "Your data will remain in the database"
-            }
-            return not_deletion_message
-        else:
-            hashed_password = self.sqlite_utils.get_hashed_password_from_db(self.username)
-            self.sqlite_utils.delete_user_from_db(self.username, hashed_password)
-            deletion_message = {
-                "Delete": "You have been deleted from database"
-            }
-            return deletion_message
+        if user_confirmation != "y":
+            return False
+        self.sqlite_utils.delete_user_from_db(self.username)
+        return True
 
     def send_message(self, recipient_data, message_data):
         recipient = recipient_data
