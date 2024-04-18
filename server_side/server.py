@@ -1,7 +1,20 @@
+import sys
+sys.path.clear()
+sys.path.extend([
+    'C:\\Programy\\Python\\Projekty\\server_client\\client_side',
+    'C:\\Programy\\Python\\Projekty\\server_client\\server_side',
+    'C:\\Program Files\\Python38\\python38.zip',
+    'C:\\Program Files\\Python38\\DLLs',
+    'C:\\Program Files\\Python38\\lib',
+    'C:\\Program Files\\Python38',
+    'C:\\Users\\szmis\\AppData\\Roaming\\Python\\Python38\\site-packages',
+    'C:\\Program Files\\Python38\\lib\\site-packages',
+    'C:\\Programy\\Python\\Projekty\\server_client'
+])
 import socket as s
 from datetime import datetime as dt
-from server_side.server_messages import ServerResponses
-from server_side.data_utils import DataUtils
+from server_messages import ServerResponses
+from data_utils import DataUtils
 from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 
 
@@ -17,7 +30,7 @@ class Server:
         self.data_utils = DataUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "1.2.3"
+        self.server_version = "1.2.5"
         self.server_start_time = dt.now()
 
     def connect_with_client(self, server_socket):

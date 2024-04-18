@@ -1,6 +1,5 @@
 import socket as s
 import os
-from secrets import password
 
 
 HOST = "127.0.0.1"
@@ -18,10 +17,8 @@ postgreSQL_database = "postgreSQL_server_client_db"
 postgreSQL_test_database = "postgreSQL_server_client_test_db"
 postgreSQL_server_connection_dict = {
     "user": "postgres",
-    "password": password,
+    "password": "postgres-password",
     "host": HOST,
     "port": PORT,
     "database": postgreSQL_database
 }
-
-

@@ -6,8 +6,8 @@ class ClientRequests:
         self.message_template = MessageTemplate("REQUEST")
 
     def user_data_input(self):
-        username = input("Username: ")
-        password = input("Password: ")
+        username = input("(New) Username: ")
+        password = input("(New) Password: ")
         user_data = {
             "username": username,
             "password": password
@@ -20,6 +20,6 @@ class ClientRequests:
 
     def request_to_server(self):
         command = input("REQUEST: ").lower()
-        if command in ["register", "login"]:
+        if command in ["register", "login", "change data"]:
             return self.user_data_handling(command)
         return self.message_template.template(message = command)

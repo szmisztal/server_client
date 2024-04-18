@@ -1,6 +1,19 @@
+import sys
+sys.path.clear()
+sys.path.extend([
+    'C:\\Programy\\Python\\Projekty\\server_client\\client_side',
+    'C:\\Programy\\Python\\Projekty\\server_client\\server_side',
+    'C:\\Program Files\\Python38\\python38.zip',
+    'C:\\Program Files\\Python38\\DLLs',
+    'C:\\Program Files\\Python38\\lib',
+    'C:\\Program Files\\Python38',
+    'C:\\Users\\szmis\\AppData\\Roaming\\Python\\Python38\\site-packages',
+    'C:\\Program Files\\Python38\\lib\\site-packages',
+    'C:\\Programy\\Python\\Projekty\\server_client'
+])
 import socket as s
 from server_side.data_utils import DataUtils
-from client_side.client_messages import ClientRequests
+from client_messages import ClientRequests
 from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 
 
@@ -53,8 +66,8 @@ class Client:
         #                   f"--------------------------------------------------------")
 
     def start(self):
-        with s.socket(INTERNET_ADDRESS_FAMILY, SOCKET_TYPE) as client_socket:
-            client_socket.connect((HOST, PORT))
+        with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as client_socket:
+            client_socket.connect((self.HOST, self.PORT))
             self.read_server_response(client_socket)
             while self.is_running:
                 self.send_command(client_socket)

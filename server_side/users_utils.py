@@ -1,8 +1,13 @@
-from server_side.data_utils import DataUtils, SQLite
-from config_variables import sqlite_database_path, postgreSQL_server_connection_dict
+import os
+from data_utils import DataUtils, SQLite
+
+
+sqlite_db_base_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sqlite_database_path = os.path.join(sqlite_db_base_directory, "sqlite_server-client_db.db")
 
 
 class User:
+
     def __init__(self):
         self.username = None
         self.__password = None
@@ -14,7 +19,7 @@ class User:
     def register_user(self, user_data):
         username = user_data["username"]
         validate_username = self.sqlite_utils.validate_username(username)
-        if validate_username == True:
+        if validate_username is True:
             password = user_data["password"]
             self.sqlite_utils.register_user_to_db(username, password)
         return validate_username
@@ -26,23 +31,14 @@ class User:
             self.username, self.__password = username, password
         return validate_data
 
-    def change_user_data(self, new_user_data):
-        new_username = new_user_data["username"]
-        new_password = new_user_data["password"]
-        new_hashed_password = self.data_utils.hash_password(new_password)
-        validated_username = self.sqlite_utils.validate_username(new_username)
-        if validated_username == False:
-            error_message = {
-                "Username": "In use, choose another"
-            }
-            return error_message
-        else:
-            hashed_password = self.sqlite_utils.get_hashed_password_from_db(self.username)
-            self.sqlite_utils.update_user_data(new_username, new_hashed_password, self.username, hashed_password)
-            change_data_message = {
-                "Success": f"Your new data: username: {new_username}, password: {new_password}"
-            }
-            return change_data_message
+    def change_user_data(self, user_data):
+        new_username = user_data["username"]
+        validate_username = self.sqlite_utils.validate_username(new_username)
+        if validate_username is True:
+            new_password = user_data["password"]
+            self.sqlite_utils.update_user_data(new_username, new_password, self.username)
+            self.username, self.__password = new_username, new_password
+        return validate_username
 
     def delete_user(self, user_confirmation):
         if user_confirmation != "yes":

@@ -3,24 +3,26 @@ import bcrypt
 # import psycopg2
 import sqlite3
 from sqlite3 import Error
-from config_variables import encode_format
 
 
 class DataUtils:
+    def __init__(self):
+        self.encode_format = "UTF-8"
+
     def serialize_to_json(self, dict_data):
-        return json.dumps(dict_data).encode(encode_format)
+        return json.dumps(dict_data).encode(self.encode_format)
 
     def deserialize_json(self, dict_data):
         return json.loads(dict_data)
 
     def hash_password(self, raw_password):
-        password = raw_password.encode(encode_format)
+        password = raw_password.encode(self.encode_format)
         salt = bcrypt.gensalt(rounds = 12)
         hashed_password = bcrypt.hashpw(password, salt)
         return hashed_password
 
     def check_hashed_password(self, raw_password, hashed_password):
-        password = raw_password.encode(encode_format)
+        password = raw_password.encode(self.encode_format)
         validate_password = bcrypt.checkpw(password, hashed_password)
         return validate_password
 
@@ -117,9 +119,10 @@ class SQLite:
         query = "DELETE FROM users WHERE username = ? AND password = ?"
         self.execute_sql_query(query, (username, password))
 
-    def update_user_data(self, new_username, new_password, username, password):
-        query = "UPDATE users SET username = ?, password = ? WHERE username = ? AND password = ?"
-        self.execute_sql_query(query, (new_username, new_password, username, password))
+    def update_user_data(self, new_username, new_password, username):
+        new_hashed_password = self.data_utils.hash_password(new_password)
+        query = "UPDATE users SET username = ?, password = ? WHERE username = ?"
+        self.execute_sql_query(query, (new_username, new_hashed_password, username))
 
     def user_messages_list(self, username, boolean_condition):
         query = "SELECT sender, message_text FROM messages WHERE user_id = (SELECT user_id FROM users WHERE username = ?) " \

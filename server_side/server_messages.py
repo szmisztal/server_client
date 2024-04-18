@@ -1,5 +1,5 @@
 from datetime import datetime as dt
-from server_side.users_utils import User
+from users_utils import User
 
 
 class MessageTemplate:
@@ -95,7 +95,7 @@ class ServerResponses:
     def user_register_successfully(self):
         return self.message_template.template(message = "You are registered successfully")
 
-    def user_register_failed(self):
+    def username_in_use_message(self):
         return self.message_template.template(message = "Username in use, choose another one")
 
     def user_sign_in_successfully(self):
@@ -104,11 +104,14 @@ class ServerResponses:
     def wrong_credentials(self):
         return self.message_template.template(message = "Wrong username or password, try again")
 
+    def change_data_successfully(self):
+        return self.message_template.template(message = "Data changed successfully")
+
     def handling_register_command(self, user_data):
         verify_username = self.user.register_user(user_data)
         if verify_username is True:
             return self.user_register_successfully()
-        return self.user_register_failed()
+        return self.username_in_use_message()
 
     def handling_login_command(self, user_data):
         verify_credentials = self.user.login_user(user_data)
@@ -120,7 +123,15 @@ class ServerResponses:
 
     def handling_logout_command(self):
         self.user_logging_status = False
+        self.user_username = None
         return self.message_template.template(message = "You were log out successfully")
+
+    def handling_change_data_command(self, user_data):
+        verify_username = self.user.change_user_data(user_data)
+        if verify_username is True:
+            self.user_username = user_data["username"]
+            return self.change_data_successfully()
+        return self.username_in_use_message()
 
     def handling_commands_for_not_logged_in_user(self, command, data):
         if command not in self.commands_list_for_not_logged_in_user and command in self.commands_list_for_logged_in_user:
@@ -130,7 +141,7 @@ class ServerResponses:
         elif command == "login":
             return self.handling_login_command(data)
 
-    def handling_commands_for_logged_in_user(self, command):
+    def handling_commands_for_logged_in_user(self, command, data):
         if command not in self.commands_list_for_logged_in_user and command in self.commands_list_for_not_logged_in_user:
             return self.forbidden_command_for_logged_in_user()
         elif command == "uptime":
@@ -139,6 +150,8 @@ class ServerResponses:
             return self.info()
         elif command == "logout":
             return self.handling_logout_command()
+        elif command == "change data":
+            return self.handling_change_data_command(data)
 
     def response_to_client(self, client_request):
         command, data = client_request[0], client_request[1]
@@ -149,7 +162,7 @@ class ServerResponses:
         elif command not in self.all_commands_list:
             return self.unknown_command(command)
         if self.user_logging_status:
-            return self.handling_commands_for_logged_in_user(command)
+            return self.handling_commands_for_logged_in_user(command, data)
         else:
             return self.handling_commands_for_not_logged_in_user(command, data)
 
