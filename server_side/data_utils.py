@@ -95,8 +95,8 @@ class SQLite:
         query = "SELECT username FROM users WHERE username = ?"
         existing_username = self.execute_sql_query(query, (username, ), fetch_option = "fetchone")
         if existing_username is not None:
-            return False
-        return True
+            return True
+        return False
 
     def get_hashed_password_from_db(self, username):
         query = "SELECT password FROM users WHERE username = ?"
@@ -115,27 +115,30 @@ class SQLite:
         query = "INSERT INTO users (username, password) VALUES (?, ?)"
         self.execute_sql_query(query, (username, hashed_password))
 
+    def update_user_data(self, new_username, new_password, username):
+        new_hashed_password = self.data_utils.hash_password(new_password)
+        query = "UPDATE users SET username = ?, password = ? WHERE username = ?"
+        self.execute_sql_query(query, (new_username, new_hashed_password, username))
+
     def delete_user_from_db(self, username):
         hashed_password = self.get_hashed_password_from_db(username)
         query = "DELETE FROM users WHERE username = ? AND password = ?"
         self.execute_sql_query(query, (username, hashed_password))
 
-    def update_user_data(self, new_username, new_password, username):
-        new_hashed_password = self.data_utils.hash_password(new_password)
-        query = "UPDATE users SET username = ?, password = ? WHERE username = ?"
-        self.execute_sql_query(query, (new_username, new_hashed_password, username))
+    def get_recipient_id(self, recipient_username):
+        query = "SELECT user_id FROM users WHERE username = ?"
+        return self.execute_sql_query(query, (recipient_username, ), fetch_option = "fetchone")
+
+    def save_message_to_db(self, recipient, sender, message):
+        recipient_id = self.get_recipient_id(recipient)
+        message_save_query = "INSERT INTO messages (user_id, sender, message_text) VALUES (?, ?, ?)"
+        self.execute_sql_query(message_save_query, (recipient_id[0], sender, message))
 
     def user_messages_list(self, username, boolean_condition):
         query = "SELECT sender, message_text FROM messages WHERE user_id = (SELECT user_id FROM users WHERE username = ?) " \
                 "AND archived = ? ORDER BY message_date"
         messages_list = self.execute_sql_query(query, (username, boolean_condition), fetch_option = "fetchall")
         return messages_list
-
-    def save_message_to_db(self, sender, message, recipient):
-        get_recipient_query = "SELECT user_id FROM users WHERE username = ?"
-        recipient_id = self.execute_sql_query(get_recipient_query, (recipient, ), fetch_option = "fetchone")
-        message_save_query = "INSERT INTO messages (user_id, sender, message_text) VALUES (?, ?, ?)"
-        self.execute_sql_query(message_save_query, (recipient_id[0], sender, message))
 
     def archive_messages(self, username):
         query = "UPDATE messages SET archived = True WHERE user_id = (SELECT user_id FROM users WHERE username = ?) AND archived = False"
