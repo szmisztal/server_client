@@ -34,36 +34,13 @@ class Client:
         client_request_json = self.data_utils.serialize_to_json(client_request)
         client_socket.sendall(client_request_json)
 
-    def send_message_input(self):
-        recipient = input("Who do you want to send a message to ?: ")
-        message = input("Write a message: ")
-        message_data = {
-            "Recipient": recipient,
-            "Message": message
-        }
-        return message_data
-
-    def delete_user_input(self):
-        confirmation = input("Do you really want to delete your data from database ? YES/NO: ").lower()
-        confirmation_data = {
-            "Delete confirmation": confirmation
-        }
-        return confirmation_data
-
     def read_server_response(self, client_socket):
         server_response = client_socket.recv(self.BUFFER)
         deserialized_response = self.data_utils.deserialize_json(server_response)
         for key, value in deserialized_response.items():
             print(f">>> {key}: {value}")
         if "Server`s shutting down..." in deserialized_response["message"]:
-            self.stop()
-        # elif isinstance(deserialized_data, list):
-        #     if not deserialized_data:
-        #         print("You don`t have any messages to read")
-        #     else:
-        #         for message in deserialized_data:
-        #             print(f"Message from: {message[0]} \nText: {message[1]} \n"
-        #                   f"--------------------------------------------------------")
+            self.stop(client_socket)
 
     def start(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as client_socket:
@@ -73,9 +50,10 @@ class Client:
                 self.send_command(client_socket)
                 self.read_server_response(client_socket)
 
-    def stop(self):
+    def stop(self, client_socket):
         print("CLIENT CLOSED...")
         self.is_running = False
+        client_socket.close()
 
 
 
