@@ -19,10 +19,11 @@ class User:
     def register_user(self, user_data):
         username = user_data["username"]
         validate_username = self.sqlite_utils.validate_username(username)
-        if validate_username is True:
+        if validate_username is False:
             password = user_data["password"]
             self.sqlite_utils.register_user_to_db(username, password)
-        return validate_username
+            return True
+        return False
 
     def login_user(self, user_data):
         username, password = user_data["username"], user_data["password"]
@@ -34,48 +35,45 @@ class User:
     def change_user_data(self, user_data):
         new_username = user_data["username"]
         validate_username = self.sqlite_utils.validate_username(new_username)
-        if validate_username is True:
+        if validate_username is False:
             new_password = user_data["password"]
             self.sqlite_utils.update_user_data(new_username, new_password, self.username)
             self.username, self.__password = new_username, new_password
-        return validate_username
+            return True
+        return False
 
     def delete_user(self, user_confirmation):
-        if user_confirmation != "y":
+        if user_confirmation is not "y":
             return False
         self.sqlite_utils.delete_user_from_db(self.username)
         return True
 
-    def send_message(self, recipient_data, message_data):
-        recipient = recipient_data
-        message = message_data
-        validated_recipient = self.sqlite_utils.validate_username(recipient)
-        if validated_recipient == True:
-            error_message = {
-                "Recipient": "User not found, try again"
-            }
-            return error_message
-        else:
-            recipient_messages_list = self.sqlite_utils.user_messages_list(recipient, False)
-            if len(message) > 255:
-                error_message = {
-                    "Failed": "Max message length = 255"
-                }
-                return error_message
-            elif len(recipient_messages_list) >= 5:
-                if self.admin_role == False:
-                    error_message = {
-                        "Failed": "Recipient`s mailbox is full"
-                    }
-                    return error_message
-            else:
-                self.sqlite_utils.save_message_to_db(self.username, message, recipient)
-                send_message_success = {
-                    "Message": "Send successfully"
-                }
-                return send_message_success
+    def check_message_length(self, message):
+        if len(message) > 255:
+            return False
+        return True
 
-    def show_new_messages(self):
+    def check_recipient_mailbox(self, recipient, unread_messages_bool):
+        verify_recipient_mailbox = self.sqlite_utils.user_messages_list(recipient, unread_messages_bool)
+        if verify_recipient_mailbox < 5:
+            return True
+        return False
+
+    def send_message(self, data):
+        recipient = data["recipient"]
+        validate_recipient = self.sqlite_utils.validate_username(recipient)
+        if validate_recipient:
+            message = data["mail"]
+            verify_message_length = self.check_message_length(message)
+            verify_recipient_mailbox = self.check_recipient_mailbox(recipient, False)
+            if verify_message_length and verify_recipient_mailbox:
+                self.sqlite_utils.save_message_to_db(recipient, self.username, message)
+                return True
+            else:
+                return False
+        return None
+
+    def show_unread_messages(self):
         user_messages_list = self.sqlite_utils.user_messages_list(self.username, False)
         self.sqlite_utils.archive_messages(self.username)
         return user_messages_list
