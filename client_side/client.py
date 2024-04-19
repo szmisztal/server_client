@@ -1,4 +1,6 @@
+import logging
 import sys
+import os
 sys.path.clear()
 sys.path.extend([
     'C:\\Programy\\Python\\Projekty\\server_client\\client_side',
@@ -14,7 +16,7 @@ sys.path.extend([
 import socket as s
 from server_side.data_utils import DataUtils
 from client_messages import ClientRequests
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, logger_config
 
 
 class Client:
@@ -25,6 +27,7 @@ class Client:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
+        self.logger = logger_config("Client", os.getcwd(), "client_logs.log")
         self.data_utils = DataUtils()
         self.client_requests = ClientRequests()
         self.is_running = True
@@ -51,7 +54,7 @@ class Client:
                 self.read_server_response(client_socket)
 
     def stop(self, client_socket):
-        print("CLIENT CLOSED...")
+        logging.debug("CLIENT CLOSED...")
         self.is_running = False
         client_socket.close()
 
@@ -59,4 +62,5 @@ class Client:
 
 if __name__ == "__main__":
     client = Client()
+    logging.debug("CLIENT`S UP")
     client.start()

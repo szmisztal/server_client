@@ -1,4 +1,6 @@
+import logging
 import sys
+import os
 sys.path.clear()
 sys.path.extend([
     'C:\\Programy\\Python\\Projekty\\server_client\\client_side',
@@ -15,7 +17,7 @@ import socket as s
 from datetime import datetime as dt
 from server_messages import HandlingClientCommands
 from data_utils import DataUtils
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, logger_config
 
 
 class Server:
@@ -26,6 +28,7 @@ class Server:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
+        self.logger = logger_config("Server", os.getcwd(), "server_logs.log")
         self.responses = HandlingClientCommands(self)
         self.data_utils = DataUtils()
         self.is_running = True
@@ -37,7 +40,7 @@ class Server:
         server_socket.bind((self.HOST, self.PORT))
         server_socket.listen()
         client_socket, address = server_socket.accept()
-        print(f"Connection from {address[0]}:{address[1]}")
+        logging.debug(f"Connection from {address[0]}:{address[1]}")
         self.initial_correspondence_with_client(client_socket)
         return client_socket
 
@@ -49,7 +52,7 @@ class Server:
         client_request_json = client_socket.recv(self.BUFFER)
         client_request = self.data_utils.deserialize_json(client_request_json)
         for key, value in client_request.items():
-            print(f">>> {key}: {value}")
+            logging.debug(f">>> {key}: {value}")
         return client_request["message"], client_request["data"]
 
     def send_response_to_client(self, server_socket, client_request, client_socket):
@@ -69,7 +72,7 @@ class Server:
 
     def stop(self, server_socket, client_socket, closing_message):
         client_socket.sendall(closing_message)
-        print("SERVER CLOSED...")
+        logging.debug("SERVER CLOSED...")
         self.is_running = False
         client_socket.close()
         server_socket.close()
@@ -78,6 +81,6 @@ class Server:
 
 if __name__ == "__main__":
     server = Server()
-    print("SERVER`S UP...")
+    logging.debug("SERVER`S UP...")
     server.start()
 
