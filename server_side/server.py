@@ -13,7 +13,7 @@ sys.path.extend([
 ])
 import socket as s
 from datetime import datetime as dt
-from server_messages import ServerResponses
+from server_messages import HandlingClientCommands
 from data_utils import DataUtils
 from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 
@@ -26,11 +26,11 @@ class Server:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
-        self.server_responses = ServerResponses(self)
+        self.responses = HandlingClientCommands(self)
         self.data_utils = DataUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "1.2.5"
+        self.server_version = "1.3.3"
         self.server_start_time = dt.now()
 
     def connect_with_client(self, server_socket):
@@ -42,7 +42,7 @@ class Server:
         return client_socket
 
     def initial_correspondence_with_client(self, client_socket):
-        welcome_message = self.data_utils.serialize_to_json(self.server_responses.welcome_message())
+        welcome_message = self.data_utils.serialize_to_json(self.responses.response.welcome_message())
         client_socket.sendall(welcome_message)
 
     def read_client_request(self, client_socket):
@@ -52,11 +52,11 @@ class Server:
             print(f">>> {key}: {value}")
         return client_request["message"], client_request["data"]
 
-    def send_response_to_client(self, client_request, client_socket):
-        response_to_client = self.server_responses.response_to_client(client_request)
+    def send_response_to_client(self, server_socket, client_request, client_socket):
+        response_to_client = self.responses.response_to_client(client_request)
         response_to_client_json = self.data_utils.serialize_to_json(response_to_client)
         if response_to_client["message"] == "Server`s shutting down...":
-            self.stop(client_socket, response_to_client_json)
+            self.stop(server_socket, client_socket, response_to_client_json)
         client_socket.sendall(response_to_client_json)
 
     def start(self):
@@ -65,12 +65,14 @@ class Server:
             with client_socket:
                 while self.is_running:
                     client_request = self.read_client_request(client_socket)
-                    self.send_response_to_client(client_request, client_socket)
+                    self.send_response_to_client(server_socket, client_request, client_socket)
 
-    def stop(self, client_socket, closing_message):
+    def stop(self, server_socket, client_socket, closing_message):
         client_socket.sendall(closing_message)
         print("SERVER CLOSED...")
         self.is_running = False
+        client_socket.close()
+        server_socket.close()
 
 
 
