@@ -1,18 +1,5 @@
 import logging
-import sys
 import os
-sys.path.clear()
-sys.path.extend([
-    'C:\\Programy\\Python\\Projekty\\server_client\\client_side',
-    'C:\\Programy\\Python\\Projekty\\server_client\\server_side',
-    'C:\\Program Files\\Python38\\python38.zip',
-    'C:\\Program Files\\Python38\\DLLs',
-    'C:\\Program Files\\Python38\\lib',
-    'C:\\Program Files\\Python38',
-    'C:\\Users\\szmis\\AppData\\Roaming\\Python\\Python38\\site-packages',
-    'C:\\Program Files\\Python38\\lib\\site-packages',
-    'C:\\Programy\\Python\\Projekty\\server_client'
-])
 import socket as s
 from server_side.data_utils import DataUtils
 from client_messages import ClientRequests
@@ -33,19 +20,28 @@ class Client:
         self.is_running = True
 
     def send_command(self, client_socket):
-        client_request = self.client_requests.request_to_server()
-        client_request_json = self.data_utils.serialize_to_json(client_request)
-        client_socket.sendall(client_request_json)
-
-    def read_server_response(self, client_socket):
-        server_response = client_socket.recv(self.BUFFER)
-        deserialized_response = self.data_utils.deserialize_json(server_response)
-        for key, value in deserialized_response.items():
-            print(f">>> {key}: {value}")
-        if "Server`s shutting down..." in deserialized_response["message"]:
+        try:
+            client_request = self.client_requests.request_to_server()
+            client_request_json = self.data_utils.serialize_to_json(client_request)
+            client_socket.sendall(client_request_json)
+        except OSError as e:
+            self.logger.debug(f"Error: {e}")
             self.stop(client_socket)
 
-    def start(self):
+
+    def read_server_response(self, client_socket):
+        try:
+            server_response = client_socket.recv(self.BUFFER)
+            deserialized_response = self.data_utils.deserialize_json(server_response)
+            for key, value in deserialized_response.items():
+                print(f">>> {key}: {value}")
+            if "Server`s shutting down..." in deserialized_response["message"]:
+                self.stop(client_socket)
+        except OSError as e:
+            self.logger.debug(f"Error: {e}")
+            self.stop(client_socket)
+
+    def main(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as client_socket:
             client_socket.connect((self.HOST, self.PORT))
             self.read_server_response(client_socket)
@@ -54,7 +50,7 @@ class Client:
                 self.read_server_response(client_socket)
 
     def stop(self, client_socket):
-        logging.debug("CLIENT CLOSED...")
+        self.logger.debug("CLIENT CLOSED...")
         self.is_running = False
         client_socket.close()
 
@@ -63,4 +59,4 @@ class Client:
 if __name__ == "__main__":
     client = Client()
     logging.debug("CLIENT`S UP")
-    client.start()
+    client.main()

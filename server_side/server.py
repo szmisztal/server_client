@@ -1,18 +1,5 @@
 import logging
-import sys
 import os
-sys.path.clear()
-sys.path.extend([
-    'C:\\Programy\\Python\\Projekty\\server_client\\client_side',
-    'C:\\Programy\\Python\\Projekty\\server_client\\server_side',
-    'C:\\Program Files\\Python38\\python38.zip',
-    'C:\\Program Files\\Python38\\DLLs',
-    'C:\\Program Files\\Python38\\lib',
-    'C:\\Program Files\\Python38',
-    'C:\\Users\\szmis\\AppData\\Roaming\\Python\\Python38\\site-packages',
-    'C:\\Program Files\\Python38\\lib\\site-packages',
-    'C:\\Programy\\Python\\Projekty\\server_client'
-])
 import socket as s
 from datetime import datetime as dt
 from server_messages import HandlingClientCommands
@@ -37,12 +24,17 @@ class Server:
         self.server_start_time = dt.now()
 
     def connect_with_client(self, server_socket):
-        server_socket.bind((self.HOST, self.PORT))
-        server_socket.listen()
-        client_socket, address = server_socket.accept()
-        logging.debug(f"Connection from {address[0]}:{address[1]}")
-        self.initial_correspondence_with_client(client_socket)
-        return client_socket
+        try:
+            server_socket.bind((self.HOST, self.PORT))
+            server_socket.listen()
+            client_socket, address = server_socket.accept()
+            self.logger.debug(f"Connection from {address[0]}:{address[1]}")
+            self.initial_correspondence_with_client(client_socket)
+            return client_socket
+        except OSError as e:
+            if client_socket:
+                client_socket.close()
+            self.logger.debug(f"Error: {e}")
 
     def initial_correspondence_with_client(self, client_socket):
         welcome_message = self.data_utils.serialize_to_json(self.responses.response.welcome_message())
@@ -52,17 +44,21 @@ class Server:
         client_request_json = client_socket.recv(self.BUFFER)
         client_request = self.data_utils.deserialize_json(client_request_json)
         for key, value in client_request.items():
-            logging.debug(f">>> {key}: {value}")
+            print(f">>> {key}: {value}")
         return client_request["message"], client_request["data"]
 
     def send_response_to_client(self, server_socket, client_request, client_socket):
-        response_to_client = self.responses.response_to_client(client_request)
-        response_to_client_json = self.data_utils.serialize_to_json(response_to_client)
-        if response_to_client["message"] == "Server`s shutting down...":
-            self.stop(server_socket, client_socket, response_to_client_json)
-        client_socket.sendall(response_to_client_json)
+        try:
+            response_to_client = self.responses.response_to_client(client_request)
+            response_to_client_json = self.data_utils.serialize_to_json(response_to_client)
+            if response_to_client["message"] == "Server`s shutting down...":
+                self.stop(server_socket, client_socket, response_to_client_json)
+            client_socket.sendall(response_to_client_json)
+        except OSError as e:
+            client_socket.close()
+            self.logger.debug(f"Error: {e}")
 
-    def start(self):
+    def main(self):
         with s.socket(self.INTERNET_ADDRESS_FAMILY, self.SOCKET_TYPE) as server_socket:
             client_socket = self.connect_with_client(server_socket)
             with client_socket:
@@ -72,9 +68,8 @@ class Server:
 
     def stop(self, server_socket, client_socket, closing_message):
         client_socket.sendall(closing_message)
-        logging.debug("SERVER CLOSED...")
+        self.logger.debug("SERVER CLOSED...")
         self.is_running = False
-        client_socket.close()
         server_socket.close()
 
 
@@ -82,5 +77,5 @@ class Server:
 if __name__ == "__main__":
     server = Server()
     logging.debug("SERVER`S UP...")
-    server.start()
+    server.main()
 
