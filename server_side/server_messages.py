@@ -1,5 +1,5 @@
 from datetime import datetime as dt
-from users_utils import User
+from server_side.users_utils import User
 
 
 class MessageTemplate:
