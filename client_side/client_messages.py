@@ -1,3 +1,4 @@
+import getpass
 from server_side.server_messages import MessageTemplate
 
 
@@ -7,12 +8,14 @@ class ClientRequests:
 
     def user_data_input(self):
         username = input("(New) Username: ")
-        password = input("(New) Password: ")
-        user_data = {
-            "username": username,
-            "password": password
-        }
-        return user_data
+        while not username.strip():
+            print("Username cannot be empty. Please try again.")
+            username = input("(New) Username: ")
+        password = getpass.getpass("(New) Password: ")
+        while not password.strip():
+            print("Password cannot be empty. Please try again.")
+            password = getpass.getpass("(New) Password: ")
+        return {"username": username, "password": password}
 
     def user_data_handling(self, command):
         user_data = self.user_data_input()
