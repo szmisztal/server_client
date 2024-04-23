@@ -28,7 +28,7 @@ class User:
                 return True
             return False
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return False
 
     def login_user(self, user_data):
@@ -39,7 +39,7 @@ class User:
                 self.username, self.__password = username, password
             return validate_data
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return False
 
     def change_user_data(self, user_data):
@@ -53,7 +53,7 @@ class User:
                 return True
             return False
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return False
 
     def delete_user(self, user_confirmation):
@@ -63,7 +63,7 @@ class User:
             self.sqlite_utils.delete_user_from_db(self.username)
             return True
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return False
 
     def check_message_length(self, message):
@@ -73,12 +73,12 @@ class User:
 
     def check_recipient_mailbox(self, recipient, unread_messages_bool):
         try:
-            verify_recipient_mailbox = self.sqlite_utils.user_messages_list(recipient, unread_messages_bool)
+            verify_recipient_mailbox = len(self.sqlite_utils.user_messages_list(recipient, unread_messages_bool))
             if verify_recipient_mailbox < 5:
                 return True
             return False
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return False
 
     def send_message(self, data):
@@ -96,7 +96,7 @@ class User:
                     return False
             return None
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return False
 
     def show_unread_messages(self):
@@ -105,7 +105,7 @@ class User:
             self.sqlite_utils.archive_messages(self.username)
             return user_messages_list
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return []
 
     def show_archived_messages(self):
@@ -113,10 +113,10 @@ class User:
             archived_messages = self.sqlite_utils.user_messages_list(self.username, True)
             return archived_messages
         except Exception as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             return []
 
     def __str__(self):
-        return f"Username: {self.username}, Password: {self.__password}, Admin role: {self.admin_role}"
+        return f"Username: {self.username}, Admin role: {self.admin_role}"
 
 
