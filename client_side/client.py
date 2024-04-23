@@ -25,7 +25,7 @@ class Client:
             client_request_json = self.data_utils.serialize_to_json(client_request)
             client_socket.sendall(client_request_json)
         except OSError as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             self.stop(client_socket)
 
 
@@ -38,7 +38,7 @@ class Client:
             if "Server`s shutting down..." in deserialized_response["message"]:
                 self.stop(client_socket)
         except OSError as e:
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error: {e}")
             self.stop(client_socket)
 
     def main(self):

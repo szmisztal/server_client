@@ -24,6 +24,7 @@ class Server:
         self.server_start_time = dt.now()
 
     def connect_with_client(self, server_socket):
+        client_socket = None
         try:
             server_socket.bind((self.HOST, self.PORT))
             server_socket.listen()
@@ -34,7 +35,7 @@ class Server:
         except OSError as e:
             if client_socket:
                 client_socket.close()
-            self.logger.debug(f"Error: {e}")
+            self.logger.error(f"Error connecting to client: {e}")
 
     def initial_correspondence_with_client(self, client_socket):
         welcome_message = self.data_utils.serialize_to_json(self.responses.response.welcome_message())
