@@ -1,6 +1,6 @@
 import os
-from server_side.data_utils import DataUtils, SQLite
-from config_variables import logger_config
+from common.data_utils import DataUtils, SQLite
+from common.logger_config import logger_config
 
 
 sqlite_db_base_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

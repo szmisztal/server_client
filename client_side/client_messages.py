@@ -1,5 +1,5 @@
 import getpass
-from server_side.server_messages import MessageTemplate
+from common.message_template import MessageTemplate
 
 
 class ClientRequests:

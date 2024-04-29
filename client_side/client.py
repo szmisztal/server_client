@@ -1,14 +1,15 @@
 import logging
 import os
 import socket as s
-from server_side.data_utils import DataUtils
+from common.data_utils import DataUtils
+from common.config_variables import client_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from common.logger_config import logger_config
 from client_messages import ClientRequests
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, logger_config
 
 
 class Client:
     def __init__(self):
-        self.HOST = HOST
+        self.HOST = client_HOST
         self.PORT = PORT
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
         self.SOCKET_TYPE = SOCKET_TYPE

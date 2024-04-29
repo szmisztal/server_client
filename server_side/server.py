@@ -3,13 +3,14 @@ import os
 import socket as s
 from datetime import datetime as dt
 from server_messages import HandlingClientCommands
-from data_utils import DataUtils
-from config_variables import HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, logger_config
+from common.data_utils import DataUtils
+from common.config_variables import server_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from common.logger_config import logger_config
 
 
 class Server:
     def __init__(self):
-        self.HOST = HOST
+        self.HOST = server_HOST
         self.PORT = PORT
         self.INTERNET_ADDRESS_FAMILY = INTERNET_ADDRESS_FAMILY
         self.SOCKET_TYPE = SOCKET_TYPE

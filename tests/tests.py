@@ -8,7 +8,7 @@ from server import Server
 from data_utils import DataUtils, SQLite
 from communication_utils import ServerResponses
 from users_utils import User
-from config_variables import sqlite_test_database
+from common.config_variables import sqlite_test_database
 
 
 class TestClient(unittest.TestCase):
