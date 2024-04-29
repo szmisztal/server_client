@@ -1,0 +1,22 @@
+services:
+  sc-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "65432:65432"
+    volumes:
+      - ./database.db:/app/sqlite_server-client_db.db
+    networks:
+      - sc-network
+
+  sc-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    networks:
+      - sc-network
+
+networks:
+  sc-network:
+    driver: bridge
