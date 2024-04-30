@@ -4,9 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile.server
     ports:
-      - "65432:65432"
+      - "65432:8000"
     volumes:
-      - ./database.db:/app/sqlite_server-client_db.db
+      - ./sqlite_server-client_db.db:/app/sqlite_server-client_db.db
     networks:
       - sc-network
 
