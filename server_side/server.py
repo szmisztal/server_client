@@ -21,7 +21,7 @@ class Server:
         self.data_utils = DataUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
-        self.server_version = "1.5.2"
+        self.server_version = "1.6.0"
         self.server_start_time = dt.now()
 
     def connect_with_client(self, server_socket):
