@@ -1,7 +1,8 @@
 import socket as s
 
 
-HOST = "127.0.0.1"
+server_HOST = "0.0.0.0"
+client_HOST = "127.0.0.1"
 PORT = 65432
 BUFFER = 1024
 encode_format = "UTF-8"
@@ -14,7 +15,7 @@ postgreSQL_test_database = "server_client_test"
 postgreSQL_server_connection_data = {
     "user": "postgres",
     "password": "postgres_password",
-    "host": HOST,
+    "host": "db",
     "port": 5432,
     "database": postgreSQL_database
 }
