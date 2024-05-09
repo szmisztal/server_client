@@ -1,17 +1,12 @@
 import json
 import bcrypt
 import psycopg2
+from config_variables import encode_format
 
 
 class DataUtils:
     def __init__(self):
-        self.encode_format = "UTF-8"
-
-    def serialize_to_json(self, dict_data):
-        return json.dumps(dict_data).encode(self.encode_format)
-
-    def deserialize_json(self, dict_data):
-        return json.loads(dict_data)
+        self.encode_format = encode_format
 
     def hash_password(self, raw_password):
         password = raw_password.encode(self.encode_format)

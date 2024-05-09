@@ -3,7 +3,7 @@ import os
 import socket as s
 from datetime import datetime as dt
 from server_messages import HandlingClientCommands
-from common.data_utils import DataUtils
+from common.serialize_utils import SerializeUtils
 from common.config_variables import server_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from common.logger_config import logger_config
 
@@ -18,7 +18,7 @@ class Server:
         self.encode_format = encode_format
         self.logger = logger_config("Server", os.getcwd(), "server_logs.log")
         self.responses = HandlingClientCommands(self)
-        self.data_utils = DataUtils()
+        self.serialize_utils = SerializeUtils()
         self.is_running = True
         self.server_start_date = "12.08.2023"
         self.server_version = "1.7.0"
@@ -39,12 +39,12 @@ class Server:
             self.logger.error(f"Error connecting to client: {e}")
 
     def initial_correspondence_with_client(self, client_socket):
-        welcome_message = self.data_utils.serialize_to_json(self.responses.response.welcome_message())
+        welcome_message = self.serialize_utils.serialize_to_json(self.responses.response.welcome_message())
         client_socket.sendall(welcome_message)
 
     def read_client_request(self, client_socket):
         client_request_json = client_socket.recv(self.BUFFER)
-        client_request = self.data_utils.deserialize_json(client_request_json)
+        client_request = self.serialize_utils.deserialize_json(client_request_json)
         for key, value in client_request.items():
             print(f">>> {key}: {value}")
         return client_request["message"], client_request["data"]
@@ -52,7 +52,7 @@ class Server:
     def send_response_to_client(self, server_socket, client_request, client_socket):
         try:
             response_to_client = self.responses.response_to_client(client_request)
-            response_to_client_json = self.data_utils.serialize_to_json(response_to_client)
+            response_to_client_json = self.serialize_utils.serialize_to_json(response_to_client)
             if response_to_client["message"] == "Server`s shutting down...":
                 self.stop(server_socket, client_socket, response_to_client_json)
             client_socket.sendall(response_to_client_json)

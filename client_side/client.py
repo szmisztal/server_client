@@ -1,7 +1,7 @@
 import logging
 import os
 import socket as s
-from common.data_utils import DataUtils
+from common.serialize_utils import SerializeUtils
 from common.config_variables import client_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
 from common.logger_config import logger_config
 from client_messages import ClientRequests
@@ -16,14 +16,14 @@ class Client:
         self.BUFFER = BUFFER
         self.encode_format = encode_format
         self.logger = logger_config("Client", os.getcwd(), "client_logs.log")
-        self.data_utils = DataUtils()
+        self.serialize_utils = SerializeUtils()
         self.client_requests = ClientRequests()
         self.is_running = True
 
     def send_command(self, client_socket):
         try:
             client_request = self.client_requests.request_to_server()
-            client_request_json = self.data_utils.serialize_to_json(client_request)
+            client_request_json = self.serialize_utils.serialize_to_json(client_request)
             client_socket.sendall(client_request_json)
         except OSError as e:
             self.logger.error(f"Error: {e}")
@@ -33,7 +33,7 @@ class Client:
     def read_server_response(self, client_socket):
         try:
             server_response = client_socket.recv(self.BUFFER)
-            deserialized_response = self.data_utils.deserialize_json(server_response)
+            deserialized_response = self.serialize_utils.deserialize_json(server_response)
             for key, value in deserialized_response.items():
                 print(f">>> {key}: {value}")
             if "Server`s shutting down..." in deserialized_response["message"]:

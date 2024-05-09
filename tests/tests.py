@@ -60,7 +60,7 @@ class TestClient(unittest.TestCase):
     @patch("sys.stdout", new_callable = io.StringIO)
     def test_read_server_response_dict(self, mock_stdout):
         data = {"key1": "value1", "key2": "value2"}
-        json_data = self.client.data_utils.serialize_to_json(data)
+        json_data = self.client.serialize_utils.serialize_to_json(data)
         self.client.read_server_response(json_data)
         output = mock_stdout.getvalue()
         self.assertIn(">>> key1: value1", output)
@@ -69,7 +69,7 @@ class TestClient(unittest.TestCase):
     @patch("sys.stdout", new_callable = io.StringIO)
     def test_read_server_response_empty_list(self, mock_stdout):
         data = []
-        json_data = self.client.data_utils.serialize_to_json(data)
+        json_data = self.client.serialize_utils.serialize_to_json(data)
         self.client.read_server_response(json_data)
         output = mock_stdout.getvalue()
         self.assertIn("You don`t have any messages to read", output)
@@ -77,7 +77,7 @@ class TestClient(unittest.TestCase):
     @patch("sys.stdout", new_callable = io.StringIO)
     def test_read_server_response_message_list(self, mock_stdout):
         data = [("Sender1", "Test_text_1"), ("Sender2", "Test_text_2")]
-        json_data = self.client.data_utils.serialize_to_json(data)
+        json_data = self.client.serialize_utils.serialize_to_json(data)
         self.client.read_server_response(json_data)
         output = mock_stdout.getvalue()
         self.assertIn("Message from: Sender1", output)
@@ -87,7 +87,7 @@ class TestClient(unittest.TestCase):
 
     def test_stop(self):
         data = {"Server status": "Shutting down"}
-        json_data = self.client.data_utils.serialize_to_json(data)
+        json_data = self.client.serialize_utils.serialize_to_json(data)
         self.client.stop(json_data)
         self.assertFalse(self.client.is_running)
 
@@ -104,13 +104,13 @@ class TestServer(unittest.TestCase):
 
     def test_read_client_request_request(self):
         data = {"Request": "test_request"}
-        json_data = self.server.data_utils.serialize_to_json(data)
+        json_data = self.server.serialize_utils.serialize_to_json(data)
         result = self.server.read_client_request(json_data)
         self.assertEqual(result, "test_request")
 
     def test_read_client_request_user_data(self):
         data = {"username": "test_username", "password": "test_password"}
-        json_data = self.server.data_utils.serialize_to_json(data)
+        json_data = self.server.serialize_utils.serialize_to_json(data)
         result = self.server.read_client_request(json_data)
         self.assertEqual(result, data)
 
