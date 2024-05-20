@@ -1,10 +1,9 @@
 import logging
-import os
 import socket as s
 from datetime import datetime as dt
 from server_messages import HandlingClientCommands
 from common.serialize_utils import SerializeUtils
-from common.config_variables import server_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from common.config_variables import server_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, log_file
 from common.logger_config import logger_config
 
 
@@ -16,7 +15,7 @@ class Server:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
-        self.logger = logger_config("Server", os.getcwd(), "server_logs.log")
+        self.logger = logger_config("Server", log_file, "server_logs.log")
         self.responses = HandlingClientCommands(self)
         self.serialize_utils = SerializeUtils()
         self.is_running = True

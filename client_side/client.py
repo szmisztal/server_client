@@ -1,8 +1,7 @@
 import logging
-import os
 import socket as s
 from common.serialize_utils import SerializeUtils
-from common.config_variables import client_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format
+from common.config_variables import client_HOST, PORT, INTERNET_ADDRESS_FAMILY, SOCKET_TYPE, BUFFER, encode_format, log_file
 from common.logger_config import logger_config
 from client_messages import ClientRequests
 
@@ -15,7 +14,7 @@ class Client:
         self.SOCKET_TYPE = SOCKET_TYPE
         self.BUFFER = BUFFER
         self.encode_format = encode_format
-        self.logger = logger_config("Client", os.getcwd(), "client_logs.log")
+        self.logger = logger_config("Client", log_file, "client_logs.log")
         self.serialize_utils = SerializeUtils()
         self.client_requests = ClientRequests()
         self.is_running = True

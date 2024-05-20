@@ -1,7 +1,6 @@
-import os
 from common.data_utils import DataUtils, PostgreSQL
 from common.logger_config import logger_config
-from common.config_variables import postgreSQL_server_connection_data
+from common.config_variables import postgreSQL_server_connection_data, log_file
 
 
 class User:
@@ -11,7 +10,7 @@ class User:
         self.__password = None
         self.admin_role = False
         self.data_utils = DataUtils()
-        self.logger = logger_config("User", os.getcwd(), "server_logs.log")
+        self.logger = logger_config("User", log_file, "server_logs.log")
         self.postgresql_utils = PostgreSQL(**postgreSQL_server_connection_data)
 
     def register_user(self, user_data):
