@@ -1,3 +1,4 @@
+import os
 import socket as s
 
 
@@ -20,5 +21,7 @@ postgreSQL_server_connection_data = {
     "database": postgreSQL_database
 }
 
-
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+log_file = os.path.join(LOG_DIR)
 
