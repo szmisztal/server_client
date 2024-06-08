@@ -1,34 +1,53 @@
-# Server-Client Communication Application
+# Server-Client Application
 
-This is an example of a simple server-client communication application written in Python. The application allows users to register, log in, send messages, view messages, change user data, and many other functionalities.
+This is a server-client application using Python and PostgreSQL, with Docker for containerization and Docker Compose for orchestration.
 
-## Requirements
+## Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Project Structure](#project-structure)
+- [License](#license)
 
-1. **Python 3.x**
-2. **sqlite3** library (for SQLite database handling)
-3. **psycopg2** library (for PostgreSQL database handling)
-4. **bcrypt** library (for hashing users passwords)
+## Installation
 
-## How to Use
+### Prerequisites
+- Docker
+- Docker Compose
 
-### Server Setup
-- Run the `server.py` file to start the server.
-- The server will listen for incoming connections on the specified host and port.
+### Steps
 
-### Client Setup
-- Run the `client.py` file to start the client application.
-- You will be prompted to enter commands to interact with the server.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/your-repo-name.git
+   cd your-repo-name
+Build and run the Docker containers:
 
-## Functionality
-- **Register**: Register a new user with a username and password.
-- **Login**: Log in to the application with your registered username and password.
-- **Change Data**: Change your user data, including username and password.
-- **Send Message**: Send a message to another user by specifying the recipient and message content.
-- **Mailbox**: Read new messages received in your mailbox.
-- **Archives**: View archived messages.
-- **Logout**: Log out of the application.
-- **Delete**: Delete your user data from the database.
-- **Help**: Get a list of available commands.
+bash
+Skopiuj kod
+docker-compose up --build
+This command will build the Docker images, start the services defined in docker-compose.yml, and set up the environment.
 
-## Database
-The application uses a SQLite (or PostgreSQL - I wrote class methods for postgreSQL too) database to store user information and messages. The database tables are created automatically when you run the server for the first time.
+Usage
+Running the Server
+The server will automatically start when the Docker container is run. It listens on port 65432.
+
+Interacting with the Client
+You can interact with the client by running the client.py script. The client can send commands to the server and receive responses.
+
+Configuration
+Environment Variables
+The following environment variables are used in the docker-compose.yml:
+
+DATABASE_HOST: The hostname for the PostgreSQL database (default: db).
+DATABASE_PORT: The port for the PostgreSQL database (default: 5432).
+Docker Compose Services
+app
+Builds from the current directory.
+Ports: Maps 65432 on the host to 65432 in the container.
+Depends on: db service.
+Environment Variables: DATABASE_HOST, DATABASE_PORT.
+db
+Image: postgres:13.
+Environment Variables: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD.
+Volumes: Mounts pgdata volume for data persistence.
