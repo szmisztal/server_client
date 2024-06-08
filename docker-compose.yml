@@ -1,23 +1,35 @@
+# Version of the Docker Compose file format
 version: '3.8'
+
 services:
+  # Service definition for the app
   app:
+    # Build the app service using the Dockerfile in the current directory
     build: .
+    # Map port 65432 on the host to port 65432 in the container
     ports:
       - "65432:65432"
+    # Define the dependency on the db service
     depends_on:
       - db
+    # Set environment variables for the app service
     environment:
       DATABASE_HOST: db
       DATABASE_PORT: 5432
 
+  # Service definition for the PostgreSQL database
   db:
+    # Use the official PostgreSQL 13 image
     image: postgres:13
+    # Set environment variables for the PostgreSQL database
     environment:
       POSTGRES_DB: server_client
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_password
+    # Mount a volume for persistent data storage
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+# Define named volumes for persistent data storage
 volumes:
   pgdata:
