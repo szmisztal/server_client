@@ -3,12 +3,12 @@ import io
 import os
 from unittest.mock import Mock, patch
 from datetime import datetime as dt
-from client import Client
-from server import Server
-from data_utils import DataUtils, SQLite
-from communication_utils import ServerResponses
-from users_utils import User
-from common.config_variables import sqlite_test_database
+from client_side.client import Client
+from server_side.server import Server
+from common.data_utils import DataUtils
+from server_side.server_messages import ServerResponses
+from server_side.users_utils import User
+from common.config_variables import postgreSQL_test_database
 
 
 class TestClient(unittest.TestCase):
@@ -126,8 +126,8 @@ class TestServer(unittest.TestCase):
 class TestDataUtils(unittest.TestCase):
     def setUp(self):
         self.data_utils = DataUtils()
-        self.sqlite_utils = SQLite(sqlite_test_database)
-        self.connection = self.sqlite_utils.create_connection()
+        self.db = DataUtils()
+        self.connection = self.db.create_connection()
 
     def tearDown(self):
         self.connection.close()
@@ -148,17 +148,17 @@ class TestDataUtils(unittest.TestCase):
         password = "password_password"
         new_username = "new_username"
         new_password = "new_password"
-        self.assertTrue(self.sqlite_utils.validate_username(username))
-        self.sqlite_utils.register_user_to_db(username, password)
-        self.assertFalse(self.sqlite_utils.validate_username(username))
-        self.assertTrue(self.sqlite_utils.validate_credentials(username, password))
-        self.assertFalse(self.sqlite_utils.validate_credentials(username, new_password))
-        self.sqlite_utils.update_user_data(new_username, new_password, username, password)
-        self.assertTrue(self.sqlite_utils.validate_credentials(new_username, new_password))
-        self.assertFalse(self.sqlite_utils.validate_credentials(new_username, password))
-        self.assertFalse(self.sqlite_utils.validate_username(new_username))
-        self.sqlite_utils.delete_user_from_db(new_username, new_password)
-        self.assertTrue(self.sqlite_utils.validate_username(username))
+        self.assertTrue(self.db.validate_username(username))
+        self.db.register_user_to_db(username, password)
+        self.assertFalse(self.db.validate_username(username))
+        self.assertTrue(self.db.validate_credentials(username, password))
+        self.assertFalse(self.db.validate_credentials(username, new_password))
+        self.db.update_user_data(new_username, new_password, username, password)
+        self.assertTrue(self.db.validate_credentials(new_username, new_password))
+        self.assertFalse(self.db.validate_credentials(new_username, password))
+        self.assertFalse(self.db.validate_username(new_username))
+        self.db.delete_user_from_db(new_username, new_password)
+        self.assertTrue(self.db.validate_username(username))
 
     def test_user_messages_list_with_boolean_condition__and_archive_messages_and_save_message_to_db_method(self):
         sender = "szymon"
@@ -166,15 +166,15 @@ class TestDataUtils(unittest.TestCase):
         message_2 = "test_message_2"
         username = "user_test"
         boolean_condition = False
-        self.sqlite_utils.register_user_to_db(sender, "sender_password")
-        self.assertFalse(self.sqlite_utils.validate_username(username))
-        self.assertFalse(self.sqlite_utils.validate_username(sender))
-        self.sqlite_utils.save_message_to_db(sender, message, username)
-        self.sqlite_utils.save_message_to_db(sender, message_2, username)
-        messages_list = self.sqlite_utils.user_messages_list(username, boolean_condition)
+        self.db.register_user_to_db(sender, "sender_password")
+        self.assertFalse(self.db.validate_username(username))
+        self.assertFalse(self.db.validate_username(sender))
+        self.db.save_message_to_db(sender, message, username)
+        self.db.save_message_to_db(sender, message_2, username)
+        messages_list = self.db.user_messages_list(username, boolean_condition)
         self.assertTrue(len(messages_list) > 0)
-        self.sqlite_utils.archive_messages(username)
-        messages_list_2 = self.sqlite_utils.user_messages_list(username, True)
+        self.db.archive_messages(username)
+        messages_list_2 = self.db.user_messages_list(username, True)
         self.assertTrue(len(messages_list_2) >= 2)
 
     def test_write_and_read_to_json_file(self):
@@ -353,20 +353,20 @@ class TestUser(unittest.TestCase):
     def setUp(self):
         self.user = User("test_username", "test_password")
         self.data_utils = DataUtils()
-        self.sqlite_utils = SQLite(sqlite_test_database)
+        self.db = DataUtils()
 
     def test_register_user_success(self):
         user_data = {"username": "test_username", "password": "test_password"}
         result = self.user.register_user(user_data)
         self.assertEqual(result, {"User": "test_username registered successfully"})
-        self.sqlite_utils.delete_user_from_db(self.user.username, self.user.password)
+        self.db.delete_user_from_db(self.user.username, self.user.password)
 
     def test_register_user_with_used_username(self):
         user_data = {"username": self.user.username, "password": self.user.password}
         result = self.user.register_user(user_data)
         self.assertIsInstance(result, dict)
         self.assertEqual(result["Username"], "In use, choose another")
-        self.sqlite_utils.delete_user_from_db(self.user.username, self.user.password)
+        self.db.delete_user_from_db(self.user.username, self.user.password)
 
     def test_login_user(self):
         user_data = {"username": self.user.username, "password": self.user.password}
@@ -375,7 +375,7 @@ class TestUser(unittest.TestCase):
         self.assertIsInstance(log_result, dict)
         self.assertIn("User 'test_username'", log_result)
         self.assertEqual(log_result["User 'test_username'"], "Sign in successfully")
-        self.sqlite_utils.delete_user_from_db(self.user.username, self.user.password)
+        self.db.delete_user_from_db(self.user.username, self.user.password)
 
     def test_login_user_with_incorrect_data(self):
         user_data = {"username": "test_password", "password": "test_username"}
@@ -403,7 +403,7 @@ class TestUser(unittest.TestCase):
         result = self.user.change_user_data(new_user_data)
         expected_message = {"Success": f"Your new data: username: new_username, password: new_password"}
         self.assertEqual(result, expected_message)
-        self.sqlite_utils.delete_user_from_db(self.user.username, self.user.password)
+        self.db.delete_user_from_db(self.user.username, self.user.password)
 
     def test_change_user_data_failure(self):
         new_user_data = {"username": "szymon", "password": "new_password"}
@@ -445,7 +445,7 @@ class TestUser(unittest.TestCase):
         message_data = "Test message"
         result = self.user.send_message(recipient_data, message_data)
         self.assertEqual(result, {"Message": "Send successfully"})
-        self.sqlite_utils.delete_user_from_db("test_user_2", "test_user_password_2")
+        self.db.delete_user_from_db("test_user_2", "test_user_password_2")
 
     def test_str(self):
         expected_str = f"Username: {self.user.username}, Password: {self.user.password}, Login status: {self.user.logged_in}, Admin role: {self.user.admin_role}"
